@@ -2,11 +2,32 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
 const AppContext = createContext(null);
 
+// Helper function to normalize event IDs
+const normalizeEventId = (event) => {
+  let id = event.id;
+  
+  // If no id, try to get from _id
+  if (!id && event._id) {
+    id = typeof event._id === 'string' ? event._id : event._id.toString();
+  }
+  
+  // If still no id, generate one
+  if (!id) {
+    id = Math.random().toString(36).substr(2, 9);
+  }
+  
+  return {
+    ...event,
+    id: id,
+  };
+};
+
+const normalizeEvents = (events) => events.map(normalizeEventId);
+
 const initialState = {
-  theme: typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'dark') : 'dark',
   user: null,
   events: typeof window !== 'undefined' && localStorage.getItem('events')
-    ? JSON.parse(localStorage.getItem('events'))
+    ? normalizeEvents(JSON.parse(localStorage.getItem('events')))
     : [
         {
           id: 1,
@@ -24,18 +45,15 @@ const initialState = {
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'TOGGLE_THEME': {
-      const next = state.theme === 'dark' ? 'light' : 'dark';
-      return { ...state, theme: next };
-    }
-    case 'SET_THEME':
-      return { ...state, theme: action.payload };
     case 'LOGIN':
       return { ...state, user: action.payload };
     case 'LOGOUT':
       return { ...state, user: null };
-    case 'ADD_EVENT':
-      return { ...state, events: [action.payload, ...state.events] };
+    case 'ADD_EVENT': {
+      const event = action.payload;
+      const normalizedEvent = normalizeEventId(event);
+      return { ...state, events: [normalizedEvent, ...state.events] };
+    }
     case 'EDIT_EVENT':
       return { ...state, events: state.events.map(ev => (ev.id === action.payload.id ? action.payload : ev)) };
     case 'DELETE_EVENT':
@@ -58,23 +76,19 @@ function reducer(state, action) {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  // Save events to localStorage when they change
   useEffect(() => {
     try {
-      localStorage.setItem('theme', state.theme);
-      localStorage.setItem('events', JSON.stringify(state.events));
+      const normalizedEvents = normalizeEvents(state.events);
+      localStorage.setItem('events', JSON.stringify(normalizedEvents));
     } catch (e) {
-      // ignore
+      console.error('Error saving events:', e);
     }
-    const html = document.documentElement;
-    if (state.theme === 'dark') html.classList.add('dark'); else html.classList.remove('dark');
-  }, [state.theme, state.events]);
+  }, [state.events]);
 
   const value = {
-    theme: state.theme,
     user: state.user,
     events: state.events,
-    toggleTheme: () => dispatch({ type: 'TOGGLE_THEME' }),
-    setTheme: t => dispatch({ type: 'SET_THEME', payload: t }),
     login: user => dispatch({ type: 'LOGIN', payload: user }),
     logout: () => dispatch({ type: 'LOGOUT' }),
     addEvent: ev => dispatch({ type: 'ADD_EVENT', payload: ev }),
@@ -87,6 +101,7 @@ export function AppProvider({ children }) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppContext() {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useAppContext must be used within AppProvider');

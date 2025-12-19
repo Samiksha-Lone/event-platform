@@ -2,98 +2,154 @@
 
 A simple event management platform with a React + Vite frontend and an Express.js, Node.js backend. Users can sign up, log in, create events, and view event details.
 
+---
+
 ## Implemented Features
-- User authentication: signup and login flows (`/client/src/pages/Signup.jsx`, `/client/src/pages/Login.jsx`, `server/src/controllers/auth.controller.js`).
-- Event management: create, list, and view events (`/client/src/pages/CreateEvent.jsx`, `/client/src/pages/Dashboard.jsx`, `/client/src/pages/EventDetails.jsx`, `server/src/controllers/event.controller.js`).
-- User dashboard: user-specific event view (`/client/src/pages/UserDashboard.jsx`).
-- Basic UI components: `Button`, `Card`, `EventCard`, `Input`, `Navbar` located in `client/src/components`.
-- Server-side storage helper in `server/src/services/storage.service.js` for handling event assets.
+
+- **User authentication**
+  - Signup and login flows (`client/src/pages/Signup.jsx`, `client/src/pages/Login.jsx`)
+  - JWT-based auth in backend (`server/src/controllers/auth.controller.js`)
+- **Event management**
+  - Create, list, and view events
+  - Backend event APIs completed in `server/src/controllers/event.controller.js`
+  - Frontend pages: `client/src/pages/CreateEvent.jsx`, `client/src/pages/Dashboard.jsx`, `client/src/pages/EventDetails.jsx`
+- **User dashboard**
+  - User-specific event view (`client/src/pages/UserDashboard.jsx`)
+- **UI components**
+  - `Button`, `Card`, `EventCard`, `Input`, `Navbar` in `client/src/components`
+- **Storage helper**
+  - `server/src/services/storage.service.js` for handling event assets (e.g., images)
+- **Theme Toggle (Light/Dark Mode)**
+  - Theme state via React Context (`client/src/context/ThemeContext.jsx`, `client/src/context/AppProvider.jsx`)
+  - Toggles `dark` class on `<html>` for Tailwind dark mode
+  - Persists preference in `localStorage`
+  - Smooth transitions using `transition-colors duration-500`
+  - Light/dark variants added to main pages and most components
+
+---
 
 ## Assignment Progress
-**Completed:** JWT auth (signup/login), event creation (title/desc/date/location/capacity/image?), responsive UI, event listing/viewing.  
-**Pending:** Event edit/delete (owner-only), RSVP system (capacity enforcement, concurrency handling via MongoDB transactions/atomic updates), full backend integration.  
-**Deployment:** 
-Frontend: Deploying on Vercel (https://event-platform.vercel.app)
-Backend: Deploying on Render (https://event-platform-backend.onrender.com)  
-MongoDB Atlas + ImageKit configured
 
+**Completed**
 
-## Concurrency Plan (for RSVP)
-Will use MongoDB transactions: check capacity + user RSVP count atomically, then $inc attendees if valid. Prevents race conditions.
+- Backend APIs:
+  - Auth: signup/login with JWT
+  - Events: create, list, get-by-id (and basic structure for edit/delete/RSVP)
+- Frontend:
+  - Signup/Login forms with validation and API calls
+  - Event creation form with image upload
+  - Dashboard listing events (UI + layout)
+  - Event details and user dashboard skeletons
+  - Responsive layout with Tailwind
+- Theming:
+  - Global light/dark theme toggle with context + `localStorage`
+  - Page wrappers updated with explicit `bg-white dark:bg-neutral-950` and smooth transitions
 
-## Tech stack
-- Frontend: React, Vite, Tailwind CSS
-- Backend: Node.js, Express
-- Database: (configured in `server/src/db/db.js`) — likely MongoDB
+**In Progress**
 
-## Repo structure
-- `client/` — React frontend
-  - `src/` — components, pages, routes, context
-  - `package.json` — frontend scripts and deps
-- `server/` — Node/Express backend
-  - `src/` — controllers, models, routes, services
+- **Frontend integration with backend APIs**
+  - Wiring Dashboard, EventDetails, UserDashboard to use live data from backend events API
+  - Ensuring create-event page updates global event state after successful API calls
+- **Shared component theming**
+  - Finalizing light/dark styles for `Navbar`, `EventCard`, `Card`, `Button`, `Input` for consistent look
+
+**Pending**
+
+- Event **edit/delete** (owner-only) fully wired on frontend
+- **RSVP system** integration:
+  - Capacity enforcement (no overbooking)
+  - Concurrency handling (atomic updates / transactions in MongoDB)
+  - Frontend RSVP/Leave buttons connected to backend
+- Full production deployment:
+  - Finalizing environment variables and URLs for deployed frontend + backend
+  - End-to-end testing of live app
+
+---
+
+## Deployment
+
+- **Frontend:** Vercel (planned) — `https://event-platform.vercel.app`
+- **Backend:** Render (planned) — `https://event-platform-backend.onrender.com`
+- **Database & Assets:**
+  - MongoDB Atlas
+  - ImageKit for image storage (configured in `storage.service.js`)
+
+---
+
+## Recent Changes (Dec 19–20, 2025)
+
+### Backend
+
+- Completed core event APIs in `event.controller.js`:
+  - `POST /events` (create event with image and owner)
+  - `GET /events` (list events)
+  - `GET /events/:id` (fetch single event)
+- Ensured auth middleware protects event creation routes.
+- Prepared structure for RSVP and capacity logic (to be integrated).
+
+### Theme / UI
+
+- **Theme Toggle Implementation**
+  - `ThemeContext.jsx` and `useTheme()` hook created to manage dark mode.
+  - Integrated theme state into `AppProvider.jsx` to provide theme globally.
+  - All main pages (`Dashboard`, `UserDashboard`, `EventDetails`, `CreateEvent`, `Login`, `Signup`) now use:
+    - `bg-white dark:bg-neutral-950` + `transition-colors duration-500`
+    - Consistent `page-wrapper` containers.
+  - `localStorage` persistence for theme preference.
+  - `<html>` correctly receives/removes `dark` class for Tailwind’s dark mode.
+
+- **Layout Refinements**
+  - Login and Signup centered card layout with dark card on light background (and matching dark theme).
+  - Dashboard cards show event info with “View” and “RSVP” actions only.
+
+### Next Steps
+
+- Connect Dashboard, EventDetails, and UserDashboard pages to the live backend endpoints using Axios and global context.
+- Implement RSVP routes and ensure they enforce capacity and handle concurrency.
+- Hook up edit/delete actions for event owners, both in backend routes and frontend UI.
+
+---
+
+## Concurrency Plan (RSVP)
+
+For RSVP logic (to be implemented):
+
+- Use MongoDB transactions or atomic updates to:
+  - Check event capacity and current RSVP count in a single operation.
+  - Ensure a user cannot RSVP twice for the same event.
+  - Increment attendees only if capacity is not exceeded.
+- This avoids race conditions when multiple users RSVP for the last available spot.
+
+---
+
+## Tech Stack
+
+- **Frontend:** React, Vite, Tailwind CSS
+- **Backend:** Node.js, Express
+- **Database:** MongoDB (configured in `server/src/db/db.js`)
+
+---
+
+## Repo Structure
+
+- `client/` — React frontend  
+  - `src/` — components, pages, routes, context  
+  - `package.json` — frontend scripts and dependencies
+- `server/` — Node/Express backend  
+  - `src/` — controllers, models, routes, services  
   - `server.js` — server entry
 
+---
+
 ## Prerequisites
+
 - Node.js LTS (v18+ recommended)
 - npm or yarn
-- A running database (e.g., MongoDB) if required by the server
+- MongoDB connection (e.g., MongoDB Atlas)
+
+---
 
 ## Setup & Run
-1. Install dependencies for both projects:
 
-```bash
-# from repo root
-cd client
-npm install
+1. **Install dependencies**
 
-# in separate terminal
-cd ../server
-npm install
-```
-
-2. Configure environment variables for the server. Create a `.env` in `server/` with values similar to:
-
-```
-PORT=3000
-DATABASE_URL=<your_database_connection_string>
-JWT_SECRET=<your_jwt_secret>
-```
-
-3. Run the server and client:
-
-```bash
-# start backend
-cd server
-npm run dev   # or: node server.js
-
-# start frontend
-cd ../client
-npm run dev
-```
-
-Open the client URL reported by Vite (usually `http://localhost:5173`) and the backend on its configured port.
-
-## API (overview)
-Implemented server routes (see `server/src/routes`):
-- `POST /auth/signup` — create account (`server/src/controllers/auth.controller.js`)
-- `POST /auth/login` — authenticate (`server/src/controllers/auth.controller.js`)
-- `GET /events` — list events (`server/src/controllers/event.controller.js`)
-- `POST /events` — create event (auth required) (`server/src/controllers/event.controller.js`)
-- `GET /events/:id` — event details (`server/src/controllers/event.controller.js`)
-
-## Files/dirs to ignore (added to `.gitignore`)
-- `node_modules/`
-- `client/node_modules/`
-- `server/node_modules/`
-- `dist/`
-- `build/`
-- `.env`
-- `.env.local`
-- `.DS_Store`
-- `*.log`
-- `npm-debug.log*`
-- `client/dist/`
-- `client/.vite/`
-- `.vscode/`
-- `Thumbs.db`

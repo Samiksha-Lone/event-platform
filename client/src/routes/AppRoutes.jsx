@@ -4,16 +4,20 @@ import Login from '../pages/Login';
 import Register from '../pages/Signup';
 import Dashboard from '../pages/Dashboard';
 import CreateEvent from '../pages/CreateEvent';
+import EventDetails from '../pages/EventDetails';
+import UserDashboard from '../pages/UserDashboard';
 
-const AppRoutes = ({ toggleTheme, isDark }) => {
+const AppRoutes = () => {
   return (
     <Router>
         <Routes>
             <Route path="/" element={<Navigate to="/user/login" replace />} />
-            <Route path="/user/register" element={<Register toggleTheme={toggleTheme} isDark={isDark} />} />
-            <Route path="/user/login" element={<Login toggleTheme={toggleTheme} isDark={isDark} />} />
-            <Route path="/dashboard" element={<Dashboard toggleTheme={toggleTheme} isDark={isDark} />} />
-            <Route path="/create-event" element={<CreateEvent toggleTheme={toggleTheme} isDark={isDark} />} />
+            <Route path="/user/register" element={<Register />} />
+            <Route path="/user/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/create-event" element={<CreateEvent />} />
+            <Route path="/event/:id" element={<EventDetails />} />
+            <Route path="/user-dashboard" element={<UserDashboard />} />
         </Routes>
     </Router>
   )

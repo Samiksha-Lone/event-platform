@@ -52,19 +52,27 @@ async function loginUser(req, res) {
     try {
         const { email, password } = req.body;
 
+        console.log('Login attempt for email:', email);
+
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
         }
 
-        const user = await userModel.findOne({email})
+        const user = await userModel.findOne({email});
 
         if(!user) {
+            console.log('User not found:', email);
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
+        console.log('User found:', user.email);
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
+        console.log('Password valid:', isPasswordValid);
+
         if(!isPasswordValid) {
+            console.log('Password mismatch for user:', email);
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
@@ -73,6 +81,8 @@ async function loginUser(req, res) {
         }, process.env.JWT_SECRET);
 
         res.cookie("token", token, { httpOnly: true, sameSite: 'lax' })
+
+        console.log('Login successful for:', email);
 
         res.status(200).json({ 
             message: 'User logged in successfully', 

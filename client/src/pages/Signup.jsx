@@ -5,30 +5,48 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import Navbar from '../components/Navbar';
 import { FiUser, FiMail, FiLock } from 'react-icons/fi';
-import { validateEmail, validatePassword, validateName, passwordStrength, validateConfirm } from '../utils/validation';
+import { validateName, validateEmail, validateConfirm, passwordStrength } from '../utils/validation';
+import { useAppContext } from '../context/AppProvider';
+import { useTheme } from '../context/ThemeContext';
 
-export default function Signup({ onNavigate }) {
-
-  const navigate = useNavigate(); // Hook at top level
+export default function Signup() {
+  const navigate = useNavigate();
+  const { login, user } = useAppContext(); // Get user for Navbar
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
 
-  // Validation helper (uses shared utilities)
+
+  // FIXED: Use ALL validation utils properly
   const validateForm = () => {
     const newErrors = {};
+    
+    // Use your validation utils
     const nameErr = validateName(name);
     if (nameErr) newErrors.name = nameErr;
+    
     const emailErr = validateEmail(email);
     if (emailErr) newErrors.email = emailErr;
-    const passErr = validatePassword(password);
-    if (passErr) newErrors.password = passErr;
+    
+    // Password validation (use passwordStrength or custom logic)
+    if (!password) newErrors.password = 'Password is required';
+    else {
+      const strength = passwordStrength(password);
+      if (strength.percent < 40) { // Weak password
+        newErrors.password = 'Password must be strong (8+ chars, uppercase, number, special char)';
+      }
+    }
+    
     const confirmErr = validateConfirm(password, confirmPassword);
     if (confirmErr) newErrors.confirm = confirmErr;
+    
     return newErrors;
   };
 
@@ -37,150 +55,240 @@ export default function Signup({ onNavigate }) {
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-      
       const formData = {
-        name: e.target.name.value,
-        email: e.target.email.value,
-        password: e.target.password.value
+        name: name.trim(),
+        email: email.trim(),
+        password: password
       };
 
+      setLoading(true);
+      setErrors({});
+      setSuccess('');
       try {
-        await axios.post("http://localhost:3000/auth/register", formData, {
-          withCredentials: true
+        const response = await axios.post("http://localhost:3000/auth/register", formData, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
-        navigate('/');
-
+        // Check if registration was successful (status 200-299)
+        if (response.status === 201 || response.status === 200) {
+          const userData = response.data.user || response.data;
+          
+          // Extract user data properly
+          const userToSave = {
+            id: userData.id || userData._id,
+            name: userData.name || formData.name,
+            email: userData.email || formData.email,
+            ...userData
+          };
+          
+          login(userToSave);
+          setSuccess('Registered successfully! Redirecting to dashboard...');
+          setErrors({});
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else {
+          setErrors({ submit: 'Registration failed. Please try again.' });
+          setSuccess('');
+        }
       } catch (error) {
+        console.error('Registration Error:', error);
         console.error('Status:', error.response?.status);
-        console.error('Error data:', error.response?.data); // Backend message!
-        console.error('Request payload:', error.config?.data);
+        console.error('Error data:', error.response?.data);
+        console.error('Request data:', formData);
+        
+        let errorMsg = error.response?.data?.message || error.message || 'Registration failed';
+        
+        // User-friendly error messages
+        if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
+          errorMsg = 'Email already registered. Please use a different email or login.';
+        } else if (error.response?.status === 400) {
+          errorMsg = 'Invalid credentials. Please check your information.';
+        } else if (error.response?.status === 500) {
+          errorMsg = 'Server error. Please try again later.';
+        }
+        
+        setErrors({ submit: errorMsg });
+        setSuccess('');
+      } finally {
+        setLoading(false);
       }
     } else {
       setErrors(newErrors);
+      setSuccess('');
     }
   };
 
   const strength = passwordStrength(password);
+  const { theme } = useTheme();
+
+  const handleNavigate = (page) => {
+    navigate(page === 'dashboard' ? '/dashboard' : `/${page}`);
+  };
+
+  const handleLogout = () => {
+    // No-op on signup page
+    console.log('Logout clicked on signup page');
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4 py-8 sm:px-6">
-      <Card className="w-full max-w-lg p-6 sm:p-8">
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <h1 className="mb-3 text-5xl font-bold text-indigo-600 dark:text-indigo-500">
-            EventHub
-          </h1>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400">
-            Create your account
-          </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            id="name"
-            name="name"
-            label="Full Name"
-            type="text"
-            placeholder="John Doe"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (errors.name) {
-                setErrors({ ...errors, name: '' });
-              }
-            }}
-            error={errors.name}
-            icon={<FiUser size={20} />}
-          />
-          <Input
-            id="email"
-            name="email"
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (errors.email) {
-                setErrors({ ...errors, email: '' });
-              }
-            }}
-            error={errors.email}
-            icon={<FiMail size={20} />}
-          />
-          <Input
-            id="password"
-            name="password"
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => {
-              const val = e.target.value;
-              setPassword(val);
-              if (errors.password) {
-                setErrors({ ...errors, password: '' });
-              }
-              if (errors.confirm && confirmPassword && confirmPassword === val) {
-                setErrors((prev) => ({ ...prev, confirm: '' }));
-              }
-            }}
-            error={errors.password}
-            icon={<FiLock size={20} />}
-          />
-
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            label="Confirm Password"
-            type="password"
-            placeholder="Repeat your password"
-            value={confirmPassword}
-            onChange={(e) => {
-              const val = e.target.value;
-              setConfirmPassword(val);
-              if (errors.confirm) setErrors({ ...errors, confirm: '' });
-            }}
-            error={errors.confirm}
-            icon={<FiLock size={20} />}
-          />
-
-          {/* Password strength meter */}
-          <div className="-mt-2">
-            <div className="w-full h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
-              <div className={`${strength.color} h-2`} style={{ width: `${strength.percent}%` }} />
+    <div className="min-h-screen overflow-hidden transition-colors duration-500 bg-white dark:bg-neutral-950">
+      {/* Main Content */}
+      <main className="flex items-center justify-center min-h-screen px-4 py-6 overflow-y-auto">
+        <div className="w-full max-w-lg">
+          <div className="p-6 transition-colors duration-500 bg-white border shadow-2xl sm:p-8 dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
+            {/* Header */}
+            <div className="mb-4 text-center">
+              <h1 className="mb-2 text-5xl font-black text-transparent bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 dark:from-indigo-500 dark:to-indigo-400 bg-clip-text drop-shadow-lg">
+                EventHub
+              </h1>
+              <p className="text-base font-medium text-neutral-600 dark:text-gray-400">
+                Create your account
+              </p>
             </div>
-            {password && (
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">{strength.label}</p>
+
+            {/* Success Alert */}
+            {success && (
+              <div className="p-3 mb-4 text-sm text-green-700 transition-colors duration-500 border border-green-300 shadow-md dark:text-green-400 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 mt-0.5 flex-shrink-0 fill-current" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{success}</span>
+                </div>
+              </div>
             )}
+
+            {/* Error Alert */}
+            {errors.submit && (
+              <div className="p-3 mb-4 text-sm text-red-700 transition-colors duration-500 border border-red-300 shadow-md dark:text-red-400 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 mt-0.5 flex-shrink-0 fill-current" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{errors.submit}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Signup Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="name"
+                name="name"
+                label="Full Name"
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                error={errors.name}
+                icon={<FiUser size={20} />}
+                required
+              />
+
+              <Input
+                id="email"
+                name="email"
+                label="Email Address"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={errors.email}
+                icon={<FiMail size={20} />}
+                required
+              />
+
+              <Input
+                id="password"
+                name="password"
+                label="Password"
+                type="password"
+                placeholder="Create a strong password"
+                value={password}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPassword(val);
+                  if (errors.password) setErrors({ ...errors, password: undefined });
+                }}
+                error={errors.password}
+                icon={<FiLock size={20} />}
+                required
+              />
+
+              {/* Password Strength Meter */}
+              <div className="pt-1">
+                <div className="w-full h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      strength.label === 'Weak'
+                        ? 'bg-red-500'
+                        : strength.label === 'Fair'
+                        ? 'bg-yellow-500'
+                        : strength.label === 'Good'
+                        ? 'bg-blue-500'
+                        : 'bg-emerald-500'
+                    }`}
+                    style={{ width: `${strength.percent}%` }}
+                  />
+                </div>
+              </div>
+
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setConfirmPassword(val);
+                  if (errors.confirm) setErrors({ ...errors, confirm: undefined });
+                }}
+                error={errors.confirm}
+                icon={<FiLock size={20} />}
+                required
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full mt-4 group"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <svg className="inline w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+            </form>
+
+            {/* Login Link */}
+            <div className="pt-4 mt-6 text-center transition-colors duration-500 border-t border-neutral-200 dark:border-neutral-700">
+              <p className="text-lg text-neutral-600 dark:text-gray-400">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/user/login')}
+                  className="font-bold text-indigo-600 transition-all duration-200 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline-offset-4 hover:underline"
+                >
+                  Sign In
+                </button>
+              </p>
+            </div>
           </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full mt-4"
-          >
-            Create Account
-          </Button>
-        </form>
-
-        {/* Login Link */}
-        <div className="mt-4 text-center">
-          <p className="text-lg text-neutral-600 dark:text-neutral-400">
-            Already have an account?{' '}
-            <button
-              onClick={() => onNavigate('login')}
-              className="font-bold text-indigo-600 dark:text-indigo-500 hover:underline"
-            >
-              Sign in
-            </button>
-          </p>
         </div>
-      </Card>
+      </main>
     </div>
   );
 }

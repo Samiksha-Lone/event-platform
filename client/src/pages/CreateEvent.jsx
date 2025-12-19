@@ -1,11 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
-import { ArrowLeft, Sun, Moon, Calendar, MapPin, Users, BookOpen } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppProvider";
+import Navbar from "../components/Navbar"; // Your Navbar component
 
-const CreateEvent = ({ toggleTheme, isDark }) => {
-
+const CreateEvent = () => {
   const navigate = useNavigate();
+  const { addEvent, user } = useAppContext();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,6 +26,11 @@ const CreateEvent = ({ toggleTheme, isDark }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setError("");
+  };
+
+  const handleImageChange = (e) => {
+    setForm((prev) => ({ ...prev, image: e.target.files[0] }));
     setError("");
   };
 
@@ -48,15 +55,29 @@ const CreateEvent = ({ toggleTheme, isDark }) => {
       formdata.append('date', form.date);
       formdata.append('time', form.time);
       formdata.append('location', form.location);
-      formdata.append('eventImage', form.image); // Exact backend match
+      formdata.append('image', form.image);
 
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:3000/event/create",
         formdata,
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
       );
 
-      setSuccess("Event created! Redirecting...");
+      // Transform backend event to match frontend schema
+      const mongoId = response.data.event._id?.toString() || '';
+      const eventData = {
+        ...response.data.event,
+        id: mongoId,
+        time: form.time,
+        category: form.category,
+        attending: 1,
+        organizer: user?.name || 'Unknown Organizer'
+      };
+      addEvent(eventData);
+      setSuccess("Event created successfully! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 1500);
 
     } catch (error) {
@@ -66,308 +87,251 @@ const CreateEvent = ({ toggleTheme, isDark }) => {
     }
   };
 
+  const handleNavigate = (page) => {
+    navigate(page === 'dashboard' ? '/dashboard' : `/${page}`);
+  };
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDark ? 'bg-[#0a0e27]' : 'bg-white'
-      }`}>
-      {/* Header */}
-      <header className={`border-b ${isDark
-          ? 'bg-[#1a1a2e]/80 border-[#404050]'
-          : 'bg-gray-50 border-gray-200'
-        }`}>
-        <div className="flex items-center justify-between max-w-4xl px-6 py-6 mx-auto">
-          {/* Back Button */}
-          <button
-            onClick={() => navigate("/dashboard")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${isDark
-                ? 'bg-[#1a1a2e] hover:bg-[#2d2d44] text-white border border-[#404050]'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
-              }`}
-          >
-            <ArrowLeft size={18} />
-            Back
-          </button>
+  <div className="min-h-screen transition-colors duration-500 bg-white dark:bg-neutral-950">
+    {/* Navbar - With theme toggle */}
+    <Navbar
+      user={user}
+      onNavigate={handleNavigate}
+      showThemeToggle={true}
+      onLogout={handleLogout}
+    />
 
-          {/* Title */}
-          <div className="text-center">
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'
-              }`}>
-              Create Event
-            </h1>
-          </div>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className={`p-2.5 rounded-lg transition-all duration-200 ${isDark
-                ? 'bg-[#0f1419] border border-[#404050] hover:bg-[#1a1a2e]'
-                : 'bg-gray-100 border border-gray-200 hover:bg-gray-200'
-              }`}
-          >
-            {isDark ? (
-              <Sun size={20} className="text-amber-400" />
-            ) : (
-              <Moon size={20} className="text-gray-600" />
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-4xl px-6 py-12 mx-auto">
-        {/* Form Card */}
-        <div className={`rounded-xl border p-8 ${isDark
-            ? 'bg-[#1a1a2e]/80 border-[#404050]'
-            : 'bg-gray-50 border-gray-200 shadow-sm'
-          }`}>
-          {/* Messages */}
-          {error && (
-            <div className={`mb-6 p-4 rounded-lg border ${isDark
-                ? 'bg-red-500/20 border-red-600 text-red-300'
-                : 'bg-red-50 border-red-200 text-red-700'
-              }`}>
-              <p className="text-sm font-medium">{error}</p>
-            </div>
-          )}
-
+    {/* Main Content */}
+    <div className="container-padding">
+      <div className="site-container">
+        <main className="main-content">
+          {/* Success Message */}
           {success && (
-            <div className={`mb-6 p-4 rounded-lg border ${isDark
-                ? 'bg-green-500/20 border-green-600 text-green-300'
-                : 'bg-green-50 border-green-200 text-green-700'
-              }`}>
-              <p className="text-sm font-medium">{success}</p>
+            <div className="p-4 mb-4 text-green-700 dark:text-green-400 border shadow-md border-green-300 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl transition-colors duration-500">
+              <p className="text-lg font-semibold">{success}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Event Title */}
-            <div>
-              <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                }`}>
-                Event Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                placeholder="e.g., Tech Conference 2025"
-                className={`w-full px-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                    ? 'bg-[#0f1419] border-[#404050] text-white placeholder:text-[#606070] focus:ring-indigo-500'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-indigo-500'
-                  }`}
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 mb-4 text-red-700 dark:text-red-400 border shadow-md border-red-300 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl transition-colors duration-500">
+              <p className="text-lg font-semibold">{error}</p>
+            </div>
+          )}
+
+          {/* Form Card */}
+          <div className="p-8 shadow-xl border bg-white dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800 transition-colors duration-500">
+            <div className="mb-8">
+              <h1 className="mb-2 text-3xl font-bold text-neutral-900 dark:text-white transition-colors duration-500">Create New Event</h1>
+              <p className="text-neutral-600 dark:text-neutral-400 transition-colors duration-500">
+                Fill out the details to create your event
+              </p>
             </div>
 
-            {/* Description */}
-            <div>
-              <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                }`}>
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="Describe your event..."
-                rows="4"
-                className={`w-full px-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${isDark
-                    ? 'bg-[#0f1419] border-[#404050] text-white placeholder:text-[#606070] focus:ring-indigo-500'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-indigo-500'
-                  }`}
-              />
-            </div>
-
-            {/* Two Column Layout */}
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {/* Category */}
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Event Title */}
               <div>
-                <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                  Category
+                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  Event Title <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                      ? 'bg-[#0f1419] border-[#404050] text-white focus:ring-indigo-500'
-                      : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'
-                    }`}
-                >
-                  <option>Technology</option>
-                  <option>Business</option>
-                  <option>Sports</option>
-                  <option>Entertainment</option>
-                  <option>Education</option>
-                  <option>Health</option>
-                  <option>Travel</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              {/* Capacity */}
-              <div>
-                <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                  Capacity <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Users
-                    size={18}
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-400'
-                      }`}
-                  />
-                  <input
-                    type="number"
-                    name="capacity"
-                    value={form.capacity}
-                    onChange={handleChange}
-                    placeholder="Number of attendees"
-                    min="1"
-                    className={`w-full pl-10 pr-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                        ? 'bg-[#0f1419] border-[#404050] text-white placeholder:text-[#606070] focus:ring-indigo-500'
-                        : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-indigo-500'
-                      }`}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Date and Time Row */}
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {/* Date */}
-              <div>
-                <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                  Date <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Calendar
-                    size={18}
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-400'
-                      }`}
-                  />
-                  <input
-                    type="date"
-                    name="date"
-                    value={form.date}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                        ? 'bg-[#0f1419] border-[#404050] text-white focus:ring-indigo-500'
-                        : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'
-                      }`}
-                  />
-                </div>
-              </div>
-
-              {/* Time */}
-              <div>
-                <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                  Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="time"
-                  name="time"
-                  value={form.time}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                      ? 'bg-[#0f1419] border-[#404050] text-white focus:ring-indigo-500'
-                      : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'
-                    }`}
-                />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div>
-              <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                }`}>
-                Location <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <MapPin
-                  size={18}
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-400'
-                    }`}
-                />
                 <input
                   type="text"
-                  name="location"
-                  value={form.location}
+                  name="title"
+                  value={form.title}
                   onChange={handleChange}
-                  placeholder="e.g., New York Convention Center"
-                  className={`w-full pl-10 pr-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                      ? 'bg-[#0f1419] border-[#404050] text-white placeholder:text-[#606070] focus:ring-indigo-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-indigo-500'
-                    }`}
+                  placeholder="e.g., Tech Conference 2025"
+                  className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 />
               </div>
-            </div>
 
-            {/* Image URL (Optional) */}
-            <div>
-              <label className={`block text-sm font-bold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-700'
-                }`}>
-                Image URL <span className="text-xs text-gray-400">(Optional)</span>
-              </label>
-              <input
-                type="file"
-                // name="image"
-                // value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-                accept="image/*"
-                required
-                placeholder="https://example.com/image.jpg"
-                className={`w-full px-4 py-3 text-base rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${isDark
-                    ? 'bg-[#0f1419] border-[#404050] text-white placeholder:text-[#606070] focus:ring-indigo-500'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-indigo-500'
-                  }`}
-              />
-            </div>
+              {/* Description */}
+              <div>
+                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  placeholder="Describe your event in detail..."
+                  rows="4"
+                  className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-vertical"
+                  required
+                />
+              </div>
 
-            {/* Form Actions */}
-            <div className="flex gap-4 pt-4">
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className={`flex-1 py-3 px-4 text-base font-bold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isDark
-                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  }`}
-              >
-                {loading ? (
-                  <>
-                    <span>Creating...</span>
-                    <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-                  </>
-                ) : (
-                  <>
-                    <BookOpen size={18} />
-                    Create Event
-                  </>
-                )}
-              </button>
+              {/* Two Column Layout - Category & Capacity */}
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {/* Category */}
+                <div>
+                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">Category</label>
+                  <select
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                    className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option>Technology</option>
+                    <option>Business</option>
+                    <option>Sports</option>
+                    <option>Entertainment</option>
+                    <option>Education</option>
+                    <option>Health</option>
+                    <option>Travel</option>
+                    <option>Other</option>
+                  </select>
+                </div>
 
-              {/* Cancel Button */}
-              <button
-                type="button"
-                onClick={() => navigate("/dashboard")}
-                className={`flex-1 py-3 px-4 text-base font-bold rounded-lg transition-all duration-200 ${isDark
-                    ? 'bg-[#1a1a2e] hover:bg-[#2d2d44] text-white border border-[#404050]'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200'
-                  }`}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </main>
+                {/* Capacity */}
+                <div>
+                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                    Capacity <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Users
+                      size={20}
+                      className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500"
+                    />
+                    <input
+                      type="number"
+                      name="capacity"
+                      value={form.capacity}
+                      onChange={handleChange}
+                      placeholder="Max attendees"
+                      min="1"
+                      className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Date & Time Row */}
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {/* Date */}
+                <div>
+                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar
+                      size={20}
+                      className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500"
+                    />
+                    <input
+                      type="date"
+                      name="date"
+                      value={form.date}
+                      onChange={handleChange}
+                      className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Time */}
+                <div>
+                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                    Time <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    name="time"
+                    value={form.time}
+                    onChange={handleChange}
+                    className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  Location <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <MapPin
+                    size={20}
+                    className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500"
+                  />
+                  <input
+                    type="text"
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    placeholder="e.g., New York Convention Center"
+                    className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  Event Image <span className="text-red-500">*</span>
+                </label>
+                <div className="relative p-8 text-center transition-colors border-2 border-dashed rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border-neutral-300 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors duration-300">
+                  <input
+                    type="file"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    required
+                  />
+                  <div className="space-y-2">
+                    <BookOpen size={48} className="mx-auto text-neutral-500 dark:text-gray-400 transition-colors duration-500" />
+                    <p className="text-lg font-semibold text-neutral-900 dark:text-white transition-colors duration-500">
+                      {form.image ? form.image.name : 'Click to upload event image'}
+                    </p>
+                    <p className="text-sm text-neutral-600 dark:text-gray-400 transition-colors duration-500">
+                      PNG, JPG up to 5MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex flex-col gap-4 pt-8 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex items-center justify-center flex-1 gap-3 px-8 py-4 text-xl font-bold text-white transition-all duration-200 bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:bg-indigo-400"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                      <span>Creating Event...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen size={24} />
+                      <span>Create Event</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard")}
+                  className="flex-1 px-6 py-4 text-lg font-bold rounded-xl border-2 border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default CreateEvent;

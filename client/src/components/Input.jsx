@@ -21,13 +21,13 @@ export default function Input({
   return (
     <div className="w-full">
       {label && (
-        <label className="block mb-3 text-lg font-bold text-neutral-700 dark:text-neutral-300">
+        <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute transform -translate-y-1/2 left-5 top-1/2 text-neutral-500 dark:text-neutral-400">
+          <div className="absolute transform -translate-y-1/2 left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500">
             {icon}
           </div>
         )}
@@ -36,20 +36,20 @@ export default function Input({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`w-full px-5 py-4 text-lg border-2 border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-50 placeholder-neutral-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-600 focus:border-transparent transition-all duration-200 ${icon ? 'pl-14' : ''} ${isPasswordType ? 'pr-14' : ''} ${error ? 'border-red-500 focus:ring-red-500' : ''} ${className}`}
+          className={`w-full px-5 py-4 text-lg bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${icon ? 'pl-14' : ''} ${isPasswordType ? 'pr-14' : ''} ${error ? 'border-red-500 dark:border-red-600/50 focus:ring-red-500' : ''} ${className}`}
           {...props}
         />
         {isPasswordType && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute p-2 transition-colors transform -translate-y-1/2 right-5 top-1/2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
+            className="absolute p-2 transition-colors transform -translate-y-1/2 right-4 top-1/2 text-neutral-500 dark:text-gray-400 hover:text-neutral-700 dark:hover:text-gray-200"
           >
             {showPassword ? <FiEye size={24} /> : <FiEyeOff size={24} />}
           </button>
         )}
       </div>
-      {error && <p className="mt-3 text-base font-bold text-red-600 dark:text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-base font-bold text-red-700 dark:text-red-400 transition-colors duration-500">{error}</p>}
     </div>
   );
 }

@@ -1,44 +1,37 @@
-import Button from './Button';
 import { FiMoon, FiSun } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiUser, FiLogOut } from 'react-icons/fi';
+import { useTheme } from '../context/ThemeContext';
+import Button from './Button';
 
-export default function Navbar({ user, onNavigate, onThemeToggle, theme, onLogout }) {
+export default function Navbar({ user, onNavigate, showThemeToggle = false, onLogout }) {
+  const { theme, toggleTheme } = useTheme();
+  
+
   return (
-    <nav className="sticky top-0 z-50 transition-colors duration-300 bg-white border-b dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
-      <div className="w-full px-6 sm:px-8 lg:px-10">
+    <nav className="sticky top-0 z-50 bg-white/95 dark:bg-neutral-900/95 border-b border-neutral-200 dark:border-neutral-800 transition-colors duration-300 supports-[backdrop-filter:blur()]:backdrop-blur-sm">
+      <div className="container-padding">
         <div className="flex items-center justify-between h-20">
           <div className="flex-1">
-            <button onClick={() => onNavigate('dashboard')} className="text-3xl font-bold text-indigo-600 transition-opacity dark:text-indigo-500 hover:opacity-80">
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="pl-5 text-3xl font-bold text-indigo-600 transition-all duration-200 dark:text-indigo-400 hover:opacity-80 active:scale-95"
+              aria-label="Go to dashboard"
+            >
               EventHub
             </button>
           </div>
 
           <div className="flex items-center gap-6">
 
-            <button
-              onClick={onThemeToggle}
-              className="p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
-              style={{ pointerEvents: 'auto' }}
-              type="button"
-              aria-label="Toggle theme"
-            >
-              {theme === 'light' ? (
-                <FiMoon size={24} className="text-neutral-700 dark:text-neutral-300" />
-              ) : (
-                <FiSun size={24} className="text-yellow-500 dark:text-yellow-400" />
-              )}
-            </button>
-
-            <div className="flex items-center gap-4">
+              {/* Profile Icon with Dropdown */}
               <button
                 onClick={() => onNavigate('user-dashboard')}
-                className="px-4 py-2 text-lg font-semibold transition-colors text-neutral-700 dark:text-neutral-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+                className="p-5 transition-colors duration-200 rounded-full text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                aria-label="Go to profile"
               >
-                {user?.name}
+                <FiUser size={24} />
               </button>
-              <Button onClick={onLogout} variant="secondary" className="text-base px-6 py-2.5">
-                Logout
-              </Button>
-            </div>
           </div>
         </div>
       </div>

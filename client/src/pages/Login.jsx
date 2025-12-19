@@ -5,23 +5,32 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import Navbar from '../components/Navbar';
 import { validateEmail, validatePassword } from '../utils/validation';
+import { useAppContext } from '../context/AppProvider';
+import { useTheme } from '../context/ThemeContext';
 import { FiMail, FiLock } from 'react-icons/fi';
 
-export default function Login({ onNavigate }) {
-
-  const navigate = useNavigate(); 
+export default function Login() {
+  const navigate = useNavigate();
+  const { login, user } = useAppContext(); // Get user for Navbar
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
 
   const validateForm = () => {
+    
     const newErrors = {};
+    
     const emailErr = validateEmail(email);
     if (emailErr) newErrors.email = emailErr;
-    const passErr = validatePassword(password);
-    if (passErr) newErrors.password = passErr;
+
+    const passwordErr = validatePassword(password);
+    if (passwordErr) newErrors.password = passwordErr;
+    
     return newErrors;
   };
 
@@ -30,99 +39,194 @@ export default function Login({ onNavigate }) {
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-
       const formData = {
-        email: e.target.email.value,
-        password: e.target.password.value
-      }
+        email: email.trim(),
+        password: password
+      };
 
+      setLoading(true);
+      setErrors({});
+      setSuccess('');
       try {
-        await axios.post("http://localhost:3000/auth/login", formData, {
-        withCredentials: true
-      });
-      
-      navigate('/dashboard');
-      
+        const response = await axios.post("http://localhost:3000/auth/login", formData, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // Check if login was successful (status 200-299)
+        if (response.status === 200) {
+          const userData = response.data.user || response.data;
+          
+          // Extract user data properly
+          const userToSave = {
+            id: userData.id || userData._id,
+            name: userData.name || userData.email?.split('@')[0],
+            email: userData.email,
+            ...userData
+          };
+          
+          login(userToSave);
+          setSuccess('Logged in successfully! Redirecting...');
+          setErrors({});
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else {
+          setErrors({ submit: 'Login failed. Please try again.' });
+          setSuccess('');
+        }
       } catch (error) {
+        console.error('Login Error:', error);
         console.error('Status:', error.response?.status);
-        console.error('Error data:', error.response?.data); 
-        console.error('Request payload:', error.config?.data);
+        console.error('Error data:', error.response?.data);
+        console.error('Request data:', formData);
+        
+        let errorMsg = error.response?.data?.message || error.message || 'Login failed';
+        
+        // User-friendly error messages
+        if (error.response?.status === 401 || error.response?.status === 400) {
+          errorMsg = 'Invalid credentials. Please check your email and password.';
+        } else if (error.response?.status === 500) {
+          errorMsg = 'Server error. Please try again later.';
+        }
+        
+        setErrors({ submit: errorMsg });
+        setSuccess('');
+      } finally {
+        setLoading(false);
       }
-      
     } else {
       setErrors(newErrors);
+      setSuccess('');
     }
   };
 
+  const handleNavigate = (page) => {
+    navigate(page === 'dashboard' ? '/dashboard' : `/${page}`);
+  };
+
+  const handleLogout = () => {
+    // No-op on login page since user isn't logged in
+    console.log('Logout clicked on login page');
+  };
+
+  const { theme } = useTheme();
+
   return (
-    <div className="flex items-center justify-center min-h-screen px-4 py-20 sm:px-6">
-      <Card className="w-full max-w-lg">
-        
-        <div className="mb-10 text-center">
-          <h1 className="mb-3 text-5xl font-bold text-indigo-600 dark:text-indigo-500">
-            EventHub
-          </h1>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400">
-            Sign in to your account
-          </p>
+    <div className="min-h-screen overflow-hidden transition-colors duration-500 bg-white dark:bg-neutral-950">
+      {/* Main Content */}
+      <main className="flex items-center justify-center min-h-screen px-4 py-12 overflow-y-auto sm:px-6 lg:px-8">
+        <div className="w-full max-w-lg">
+          <div className="p-6 transition-colors duration-500 bg-white border shadow-2xl sm:p-8 dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
+            {/* Logo & Title */}
+            <div className="mb-4 text-center">
+              <h1 className="mb-2 text-5xl font-black text-transparent bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 dark:from-indigo-500 dark:to-indigo-400 bg-clip-text drop-shadow-lg">
+                EventHub
+              </h1>
+              <p className="text-base font-medium text-neutral-600 dark:text-gray-400">
+                Sign in to your account
+              </p>
+            </div>
+
+            {/* Success Alert */}
+            {success && (
+              <div className="p-3 mb-4 text-sm text-green-700 transition-colors duration-500 border border-green-300 shadow-md dark:text-green-400 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 mt-0.5 flex-shrink-0 fill-current" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{success}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Error Alert */}
+            {errors.submit && (
+              <div className="p-3 mb-4 text-sm text-red-700 transition-colors duration-500 border border-red-300 shadow-md dark:text-red-400 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{errors.submit}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="email"
+                name="email"
+                label="Email Address"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) {
+                    setErrors({ ...errors, email: '' });
+                  }
+                }}
+                error={errors.email}
+                icon={<FiMail size={20} />}
+                required
+              />
+              
+              <Input
+                id="password"
+                name="password"
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) {
+                    setErrors({ ...errors, password: '' });
+                  }
+                }}
+                error={errors.password}
+                icon={<FiLock size={20} />}
+                required
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full mt-2 group"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <svg className="inline w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing In...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </form>
+
+            {/* Register Link */}
+            <div className="pt-8 mt-10 text-center transition-colors duration-500 border-t border-neutral-200 dark:border-neutral-700">
+              <p className="text-lg text-neutral-600 dark:text-gray-400">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/user/register')}
+                  className="text-lg font-bold text-indigo-600 transition-colors duration-200 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline-offset-4 hover:underline"
+                >
+                  Create Account
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            id="email"
-            name="email"
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (errors.email) {
-                setErrors({ ...errors, email: '' });
-              }
-            }}
-            error={errors.email}
-            icon={<FiMail size={20} />}
-          />
-          <Input
-            id="password"
-            name="password"
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (errors.password) {
-                setErrors({ ...errors, password: '' });
-              }
-            }}
-            error={errors.password}
-            icon={<FiLock size={20} />}
-          />
-
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full mt-8"
-          >
-            Sign In
-          </Button>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-lg text-neutral-600 dark:text-neutral-400">
-            Don't have an account?{' '}
-            <button
-              onClick={() => onNavigate('signup')}
-              className="font-bold text-indigo-600 dark:text-indigo-500 hover:underline"
-            >
-              Create one
-            </button>
-          </p>
-        </div>
-      </Card>
+      </main>
     </div>
   );
 }
