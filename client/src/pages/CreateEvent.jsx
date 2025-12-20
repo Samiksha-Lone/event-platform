@@ -101,7 +101,7 @@ const CreateEvent = () => {
     <Navbar
       user={user}
       onNavigate={handleNavigate}
-      showThemeToggle={true}
+      showThemeToggle={false}
       onLogout={handleLogout}
     />
 
@@ -111,23 +111,23 @@ const CreateEvent = () => {
         <main className="main-content">
           {/* Success Message */}
           {success && (
-            <div className="p-4 mb-4 text-green-700 dark:text-green-400 border shadow-md border-green-300 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl transition-colors duration-500">
+            <div className="p-4 mb-4 text-green-700 transition-colors duration-500 border border-green-300 shadow-md dark:text-green-400 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl">
               <p className="text-lg font-semibold">{success}</p>
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="p-4 mb-4 text-red-700 dark:text-red-400 border shadow-md border-red-300 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl transition-colors duration-500">
+            <div className="p-4 mb-4 text-red-700 transition-colors duration-500 border border-red-300 shadow-md dark:text-red-400 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl">
               <p className="text-lg font-semibold">{error}</p>
             </div>
           )}
 
           {/* Form Card */}
-          <div className="p-8 shadow-xl border bg-white dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800 transition-colors duration-500">
+          <div className="p-8 transition-colors duration-500 bg-white border shadow-xl dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
             <div className="mb-8">
-              <h1 className="mb-2 text-3xl font-bold text-neutral-900 dark:text-white transition-colors duration-500">Create New Event</h1>
-              <p className="text-neutral-600 dark:text-neutral-400 transition-colors duration-500">
+              <h1 className="mb-2 text-3xl font-bold transition-colors duration-500 text-neutral-900 dark:text-white">Create New Event</h1>
+              <p className="transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
                 Fill out the details to create your event
               </p>
             </div>
@@ -135,7 +135,7 @@ const CreateEvent = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Event Title */}
               <div>
-                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                   Event Title <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -144,14 +144,14 @@ const CreateEvent = () => {
                   value={form.title}
                   onChange={handleChange}
                   placeholder="e.g., Tech Conference 2025"
-                  className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                   Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -160,7 +160,7 @@ const CreateEvent = () => {
                   onChange={handleChange}
                   placeholder="Describe your event in detail..."
                   rows="4"
-                  className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-vertical"
+                  className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-vertical"
                   required
                 />
               </div>
@@ -169,12 +169,12 @@ const CreateEvent = () => {
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                 {/* Category */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">Category</label>
+                  <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">Category</label>
                   <select
                     name="category"
                     value={form.category}
                     onChange={handleChange}
-                    className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option>Technology</option>
                     <option>Business</option>
@@ -189,13 +189,13 @@ const CreateEvent = () => {
 
                 {/* Capacity */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                     Capacity <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Users
                       size={20}
-                      className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500"
+                      className="absolute transition-colors duration-500 -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
                     />
                     <input
                       type="number"
@@ -204,7 +204,7 @@ const CreateEvent = () => {
                       onChange={handleChange}
                       placeholder="Max attendees"
                       min="1"
-                      className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
@@ -215,20 +215,20 @@ const CreateEvent = () => {
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                 {/* Date */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                     Date <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Calendar
                       size={20}
-                      className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500"
+                      className="absolute transition-colors duration-500 -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
                     />
                     <input
                       type="date"
                       name="date"
                       value={form.date}
                       onChange={handleChange}
-                      className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
@@ -236,7 +236,7 @@ const CreateEvent = () => {
 
                 {/* Time */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                  <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                     Time <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -244,7 +244,7 @@ const CreateEvent = () => {
                     name="time"
                     value={form.time}
                     onChange={handleChange}
-                    className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-5 py-4 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                   />
                 </div>
@@ -252,13 +252,13 @@ const CreateEvent = () => {
 
               {/* Location */}
               <div>
-                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                   Location <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <MapPin
                     size={20}
-                    className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500"
+                    className="absolute transition-colors duration-500 -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
                   />
                   <input
                     type="text"
@@ -266,7 +266,7 @@ const CreateEvent = () => {
                     value={form.location}
                     onChange={handleChange}
                     placeholder="e.g., New York Convention Center"
-                    className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-5 py-4 pl-12 text-lg transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                   />
                 </div>
@@ -274,10 +274,10 @@ const CreateEvent = () => {
 
               {/* Image Upload */}
               <div>
-                <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+                <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
                   Event Image <span className="text-red-500">*</span>
                 </label>
-                <div className="relative p-8 text-center transition-colors border-2 border-dashed rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border-neutral-300 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors duration-300">
+                <div className="relative p-8 text-center transition-colors duration-300 border-2 border-dashed rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border-neutral-300 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-500">
                   <input
                     type="file"
                     onChange={handleImageChange}
@@ -286,11 +286,11 @@ const CreateEvent = () => {
                     required
                   />
                   <div className="space-y-2">
-                    <BookOpen size={48} className="mx-auto text-neutral-500 dark:text-gray-400 transition-colors duration-500" />
-                    <p className="text-lg font-semibold text-neutral-900 dark:text-white transition-colors duration-500">
+                    <BookOpen size={48} className="mx-auto transition-colors duration-500 text-neutral-500 dark:text-gray-400" />
+                    <p className="text-lg font-semibold transition-colors duration-500 text-neutral-900 dark:text-white">
                       {form.image ? form.image.name : 'Click to upload event image'}
                     </p>
-                    <p className="text-sm text-neutral-600 dark:text-gray-400 transition-colors duration-500">
+                    <p className="text-sm transition-colors duration-500 text-neutral-600 dark:text-gray-400">
                       PNG, JPG up to 5MB
                     </p>
                   </div>
@@ -320,7 +320,7 @@ const CreateEvent = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/dashboard")}
-                  className="flex-1 px-6 py-4 text-lg font-bold rounded-xl border-2 border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors duration-300"
+                  className="flex-1 px-6 py-4 text-lg font-bold transition-colors duration-300 border-2 rounded-xl border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700"
                 >
                   Cancel
                 </button>

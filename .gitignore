@@ -1,15 +1,10 @@
+# Environment Variables
 .env
+.env.local
+.env.*.local
+
 # Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.env
-# Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -25,10 +20,13 @@ server/node_modules/
 # Build outputs
 dist/
 dist-ssr/
+build/
 client/dist/
+client/build/
 client/.vite/
+server/build/
 
-# Editor directories and files
+# IDE and Editor directories
 .vscode/
 !.vscode/extensions.json
 .idea/
@@ -38,12 +36,58 @@ client/.vite/
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+.history
+
+# OS specific files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+*.sublime-workspace
+
+# Dependencies
+.pnp
+.pnp.js
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
 
 # Misc
 coverage/
-Thumbs.db
 *.local
-
-# Temporary
-tmp/
 *.tmp
+tmp/
+temp/
+
+# Test coverage
+lcov.info
+.nyc_output/
+
+# Production build folder
+build/
+
+# Package manager lock files (optional - uncomment if needed)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# IDE configuration per developer (VS Code workspace settings)
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# macOS
+.Spotlight-V100
+.Trashes
+ehthumbs.db

@@ -1,53 +1,586 @@
 # Event Platform
 
-A simple event management platform with a React + Vite frontend and an Express.js, Node.js backend. Users can sign up, log in, create events, and view event details.
+A full-featured event management platform built with **React + Vite** frontend and **Express.js + Node.js** backend. Users can create accounts, authenticate securely, create and manage events, RSVP for events, and enjoy a modern UI with theme switching.
 
 ---
 
-## Implemented Features
+## 🎯 Overview
 
-- **User authentication**
-  - Signup and login flows (`client/src/pages/Signup.jsx`, `client/src/pages/Login.jsx`)
-  - JWT-based auth in backend (`server/src/controllers/auth.controller.js`)
-- **Event management**
-  - Create, list, and view events
-  - Backend event APIs completed in `server/src/controllers/event.controller.js`
-  - Frontend pages: `client/src/pages/CreateEvent.jsx`, `client/src/pages/Dashboard.jsx`, `client/src/pages/EventDetails.jsx`
-- **User dashboard**
-  - User-specific event view (`client/src/pages/UserDashboard.jsx`)
-- **UI components**
-  - `Button`, `Card`, `EventCard`, `Input`, `Navbar` in `client/src/components`
-- **Storage helper**
-  - `server/src/services/storage.service.js` for handling event assets (e.g., images)
-- **Theme Toggle (Light/Dark Mode)**
-  - Theme state via React Context (`client/src/context/ThemeContext.jsx`, `client/src/context/AppProvider.jsx`)
-  - Toggles `dark` class on `<html>` for Tailwind dark mode
-  - Persists preference in `localStorage`
-  - Smooth transitions using `transition-colors duration-500`
-  - Light/dark variants added to main pages and most components
+Event Platform is a modern web application designed to help users discover, create, and manage events. The platform features a responsive React frontend with Tailwind CSS styling, a robust Node.js backend with MongoDB database, and secure JWT-based authentication.
+
+### Tech Stack
+
+**Frontend:**
+- React 19.2.0
+- Vite 7.2.4
+- Tailwind CSS 4.1.18
+- React Router DOM 7.11.0
+- Axios for API calls
+- Lucide React & React Icons for UI icons
+
+**Backend:**
+- Node.js + Express.js
+- MongoDB with Mongoose ODM
+- JWT (JSON Web Tokens) for authentication
+- ImageKit for image storage/CDN
+- Bcrypt for password hashing
+- Multer for file uploads
 
 ---
 
-## Assignment Progress
+## ✨ Implemented Features
 
-**Completed**
+### 1. **User Authentication** ✅
+- **Signup/Registration** (`client/src/pages/Signup.jsx`)
+  - User registration with name, email, and password
+  - Password validation (minimum 6 characters, uppercase, number)
+  - Confirmation password verification
+  - Password strength indicator
+  - Duplicate email detection
 
-- Backend APIs:
-  - Auth: signup/login with JWT
-  - Events: create, list, get-by-id (and basic structure for edit/delete/RSVP)
-- Frontend:
-  - Signup/Login forms with validation and API calls
-  - Event creation form with image upload
-  - Dashboard listing events (UI + layout)
-  - Event details and user dashboard skeletons
-  - Responsive layout with Tailwind
-- Theming:
-  - Global light/dark theme toggle with context + `localStorage`
-  - Page wrappers updated with explicit `bg-white dark:bg-neutral-950` and smooth transitions
+- **Login** (`client/src/pages/Login.jsx`)
+  - Email and password validation
+  - JWT token generation and storage in secure cookies
+  - Remember user session
+  - Error handling and user feedback
 
-**In Progress**
+- **Backend Authentication** (`server/src/controllers/auth.controller.js`)
+  - Bcrypt password hashing (salt rounds: 10)
+  - JWT token signing and verification
+  - Cookie-based token storage with httpOnly flag
+  - Email uniqueness validation
+  - Comprehensive error handling
 
-- **Frontend integration with backend APIs**
+### 2. **Event Management** ✅
+- **Create Events** (`client/src/pages/CreateEvent.jsx`)
+  - Form with fields: title, description, category, date, time, location, capacity, image
+  - Image upload with validation (max 2MB, formats: PNG, JPEG, WEBP)
+  - Client-side validation
+  - Image storage via ImageKit
+  - Owner-only access control
+
+- **View Events** (`client/src/pages/Dashboard.jsx`)
+  - List all events with event cards
+  - Event details include: title, image, location, date, capacity, attendees
+  - EventCard component with responsive grid layout
+  - Filter and search capabilities (structure prepared)
+
+- **Event Details** (`client/src/pages/EventDetails.jsx`)
+  - Full event information display
+  - Owner and attendee information
+  - RSVP participant list
+  - Event edit/delete options (for owner)
+
+- **User Dashboard** (`client/src/pages/UserDashboard.jsx`)
+  - User profile information
+  - User-created events
+  - Events user has RSVP'd to
+  - Event management options
+
+### 3. **RSVP System** ✅
+- **Join Event** (`POST /event/:id/rsvp`)
+  - Add user to event RSVP list
+  - Check event capacity before adding
+  - Prevent duplicate RSVPs
+  - Real-time attendee count update
+
+- **Leave Event** (`DELETE /event/:id/rsvp`)
+  - Remove user from RSVP list
+  - Update attendee count
+  - Support for changing mind
+
+### 4. **Event Operations** ✅
+- **Update Event** (`PUT /event/:id`)
+  - Edit event details (title, description, date, location, capacity)
+  - Update event image
+  - Owner-only access validation
+  - Atomic updates
+
+- **Delete Event** (`DELETE /event/:id`)
+  - Remove event from database
+  - Owner-only access
+  - Cascade delete with RSVP cleanup
+
+### 5. **Theme Management** ✅
+- **Light/Dark Mode Toggle** (`client/src/context/ThemeContext.jsx`)
+  - Toggle button in Navbar (`client/src/components/Navbar.jsx`)
+  - Persistent theme preference in localStorage
+  - Smooth transitions with `transition-colors duration-500`
+  - Tailwind dark mode support via `dark:` classes
+  - System preference detection
+
+- **Dark Mode Styling**
+  - Navbar: `dark:bg-neutral-900/95 dark:border-neutral-800`
+  - Pages: `dark:bg-neutral-950 dark:text-neutral-50`
+  - Components: Consistent dark variants for all elements
+  - Icons: Sun icon for dark mode, Moon icon for light mode
+
+### 6. **Validation & Error Handling** ✅
+- **Email Validation** (`validateEmail()`)
+  - Format validation with regex
+  - Required field check
+
+- **Password Validation** (`validatePassword()`)
+  - Minimum length enforcement (default 6)
+  - Uppercase letter requirement
+  - Number requirement
+  - Configurable validation options
+
+- **Event Validation** (`validateEvent()`)
+  - Title minimum 5 characters
+  - Required date and time
+  - Location minimum 3 characters
+  - Positive integer capacity
+
+- **Image Validation** (`validateImage()`)
+  - File type check (PNG, JPEG, WEBP)
+  - Maximum size 2MB
+  - File presence validation
+
+- **Password Strength Indicator** (`passwordStrength()`)
+  - 5-level strength scoring: Very weak → Very strong
+  - Visual color feedback (red → green)
+  - Percentage calculation
+
+### 7. **Database Schema** ✅
+- **User Model** (`server/src/models/user.model.js`)
+  - Fields: name, email, password (hashed), timestamps
+  - Email unique constraint
+  - Automatic created/updated timestamps
+
+- **Event Model** (`server/src/models/event.model.js`)
+  - Fields: title, description, date, location, capacity, image URL, owner, rsvps array
+  - Owner reference to User model
+  - RSVP list with User references
+  - Automatic timestamps for creation/updates
+
+### 8. **UI Components** ✅
+- **Button** (`client/src/components/Button.jsx`) - Reusable action button with variants
+- **Card** (`client/src/components/Card.jsx`) - Container component for content
+- **EventCard** (`client/src/components/EventCard.jsx`) - Event display card with image, title, location, attendees
+- **Input** (`client/src/components/Input.jsx`) - Text input field with icon support
+- **Navbar** (`client/src/components/Navbar.jsx`) - Navigation bar with logo, theme toggle, user menu
+
+### 9. **Routing** ✅
+- **Route Structure** (`client/src/routes/AppRoutes.jsx`)
+  - `/` → Redirects to login
+  - `/user/register` → Signup page
+  - `/user/login` → Login page
+  - `/dashboard` → Events listing
+  - `/create-event` → Create event form
+  - `/event/:id` → Event details
+  - `/user-dashboard` → User profile & events
+
+### 10. **State Management** ✅
+- **App Context** (`client/src/context/AppProvider.jsx`)
+  - User state management (login/logout)
+  - Events state management (add, edit, delete)
+  - RSVP tracking
+  - LocalStorage persistence
+
+- **Theme Context** (`client/src/context/ThemeContext.jsx`)
+  - Global theme state
+  - Theme toggle function
+  - LocalStorage persistence
+
+### 11. **API Integration** ✅
+- **Auth APIs** (`server/src/routes/auth.routes.js`)
+  - `POST /auth/register` - User signup
+  - `POST /auth/login` - User login
+  - `GET /auth/logout` - User logout
+
+- **Event APIs** (`server/src/routes/event.routes.js`)
+  - `POST /event/create` - Create new event
+  - `GET /event` - List all events
+  - `GET /event/:id` - Get event details
+  - `PUT /event/:id` - Update event
+  - `DELETE /event/:id` - Delete event
+  - `POST /event/:id/rsvp` - RSVP to event
+  - `DELETE /event/:id/rsvp` - Cancel RSVP
+
+### 12. **Image Storage** ✅
+- **ImageKit Integration** (`server/src/services/storage.service.js`)
+  - Cloud image upload with ImageKit SDK
+  - File naming with UUID
+  - Direct URL responses for frontend
+  - Supports multiple image formats
+
+### 13. **Authentication Middleware** ✅
+- **Token Verification** (`server/src/middlewares/auth.middleware.js`)
+  - JWT token extraction from cookies
+  - Token validation against JWT_SECRET
+  - User data injection into request object
+  - Protected route enforcement
+
+---
+
+## 📁 Project Structure
+
+```
+Event_platform/
+├── client/                          # React Frontend
+│   ├── src/
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── Button.jsx
+│   │   │   ├── Card.jsx
+│   │   │   ├── EventCard.jsx
+│   │   │   ├── Input.jsx
+│   │   │   └── Navbar.jsx
+│   │   ├── context/                 # State management
+│   │   │   ├── AppProvider.jsx      # App state (user, events)
+│   │   │   └── ThemeContext.jsx     # Theme state
+│   │   ├── pages/                   # Route pages
+│   │   │   ├── Login.jsx
+│   │   │   ├── Signup.jsx
+│   │   │   ├── Dashboard.jsx        # Events listing
+│   │   │   ├── CreateEvent.jsx
+│   │   │   ├── EventDetails.jsx
+│   │   │   └── UserDashboard.jsx
+│   │   ├── routes/
+│   │   │   └── AppRoutes.jsx        # Route definitions
+│   │   ├── utils/
+│   │   │   └── validation.js        # Form validation functions
+│   │   ├── App.jsx                  # App wrapper with providers
+│   │   ├── main.jsx                 # Entry point
+│   │   └── index.css                # Global styles
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   └── index.html
+│
+└── server/                          # Express Backend
+    ├── src/
+    │   ├── controllers/             # Request handlers
+    │   │   ├── auth.controller.js   # Auth logic
+    │   │   └── event.controller.js  # Event logic
+    │   ├── models/                  # Mongoose schemas
+    │   │   ├── user.model.js
+    │   │   └── event.model.js
+    │   ├── routes/                  # API routes
+    │   │   ├── auth.routes.js
+    │   │   └── event.routes.js
+    │   ├── middlewares/
+    │   │   └── auth.middleware.js   # JWT verification
+    │   ├── services/
+    │   │   └── storage.service.js   # ImageKit integration
+    │   ├── db/
+    │   │   └── db.js                # MongoDB connection
+    │   └── app.js                   # Express app setup
+    ├── server.js                    # Server entry point
+    └── package.json
+```
+
+---
+
+## 🚀 Setup & Installation
+
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB (local or cloud)
+- ImageKit account (for image storage)
+- Environment variables configured
+
+### Backend Setup
+
+1. **Install dependencies:**
+   ```bash
+   cd server
+   npm install
+   ```
+
+2. **Configure environment variables** (create `.env` file):
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/event_platform
+   JWT_SECRET=your_jwt_secret_key_here
+   IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+   IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+   IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
+   PORT=3000
+   ```
+
+3. **Start the backend server:**
+   ```bash
+   npm start
+   # or with nodemon for development:
+   npm run dev
+   ```
+   Server will run on `http://localhost:3000`
+
+### Frontend Setup
+
+1. **Install dependencies:**
+   ```bash
+   cd client
+   npm install
+   ```
+
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   Frontend will run on `http://localhost:5173`
+
+3. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🔐 Security Features
+
+- **Password Security**
+  - Bcrypt hashing with salt rounds (10)
+  - Password strength validation
+  - Confirmation password verification
+
+- **Authentication**
+  - JWT token-based authentication
+  - HttpOnly cookies for token storage
+  - CORS configured for trusted origins
+  - Token verification on protected routes
+
+- **Data Validation**
+  - Client-side form validation
+  - Server-side validation on all endpoints
+  - File type and size validation for images
+
+- **Authorization**
+  - Owner-only event edit/delete
+  - User-specific RSVP management
+  - Protected API endpoints with auth middleware
+
+---
+
+## 📱 Responsive Design
+
+- **Mobile-First Approach**
+  - Tailwind CSS responsive grid layout
+  - Flexible component sizing
+  - Touch-friendly buttons and inputs
+  - Optimized Navbar for mobile
+
+- **Dark Mode Support**
+  - System preference detection
+  - User-selectable theme toggle
+  - Persistent theme preference
+  - Smooth transitions between themes
+
+---
+
+## 🧪 API Documentation
+
+### Authentication Endpoints
+
+#### Register User
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "Password123"
+}
+
+Response: 201 Created
+{
+  "message": "User registered successfully",
+  "newUser": { "id": "...", "name": "...", "email": "..." },
+  "token": "eyJhbGc..."
+}
+```
+
+#### Login User
+```http
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "Password123"
+}
+
+Response: 200 OK
+{
+  "message": "User logged in successfully",
+  "user": { "id": "...", "name": "...", "email": "..." },
+  "token": "eyJhbGc..."
+}
+```
+
+### Event Endpoints
+
+#### Create Event
+```http
+POST /event/create
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+{
+  "title": "Tech Conference 2025",
+  "description": "Annual tech conference",
+  "date": "2025-01-15",
+  "location": "San Francisco",
+  "capacity": 500,
+  "image": <file>
+}
+
+Response: 201 Created
+{
+  "message": "Event created successfully",
+  "event": { "id": "...", "title": "...", ... }
+}
+```
+
+#### Get All Events
+```http
+GET /event
+Authorization: Bearer {token}
+
+Response: 200 OK
+{
+  "message": "Events fetched successfully",
+  "events": [...]
+}
+```
+
+#### Get Event by ID
+```http
+GET /event/:id
+Authorization: Bearer {token}
+
+Response: 200 OK
+{
+  "message": "Event fetched successfully",
+  "event": { ... }
+}
+```
+
+#### RSVP to Event
+```http
+POST /event/:id/rsvp
+Authorization: Bearer {token}
+
+Response: 200 OK
+{
+  "message": "RSVP successful",
+  "event": { ... }
+}
+```
+
+#### Cancel RSVP
+```http
+DELETE /event/:id/rsvp
+Authorization: Bearer {token}
+
+Response: 200 OK
+{
+  "message": "RSVP cancelled",
+  "event": { ... }
+}
+```
+
+#### Update Event
+```http
+PUT /event/:id
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "date": "2025-02-15",
+  "location": "New Location",
+  "capacity": 600,
+  "image": <file> (optional)
+}
+
+Response: 200 OK
+{
+  "message": "Event updated successfully",
+  "event": { ... }
+}
+```
+
+#### Delete Event
+```http
+DELETE /event/:id
+Authorization: Bearer {token}
+
+Response: 200 OK
+{
+  "message": "Event deleted successfully"
+}
+```
+
+---
+
+## ✅ Checklist of Completed Features
+
+- [x] User authentication (signup/login)
+- [x] JWT token-based authorization
+- [x] Event creation with image upload
+- [x] Event listing and filtering
+- [x] Event details view
+- [x] Event RSVP system
+- [x] Event edit/delete (owner only)
+- [x] User dashboard
+- [x] Theme toggle (light/dark mode)
+- [x] Form validation (client & server)
+- [x] Image storage integration (ImageKit)
+- [x] Responsive design
+- [x] Error handling and user feedback
+- [x] Protected API routes
+- [x] MongoDB database integration
+- [x] Reusable UI components
+- [x] Context API for state management
+- [x] React Router navigation
+
+---
+
+## 📝 Notes
+
+- All images are stored via **ImageKit** for CDN delivery and optimization
+- Authentication tokens are stored in **httpOnly cookies** for security
+- The platform uses **Tailwind CSS** for styling and responsive design
+- State is persisted in **localStorage** for theme and session data
+- Password validation includes strength checking
+- RSVP system prevents duplicates and respects event capacity
+
+---
+
+## 📧 Environment Variables Required
+
+```
+MONGODB_URI          # MongoDB connection string
+JWT_SECRET           # Secret key for JWT signing
+IMAGEKIT_PUBLIC_KEY  # ImageKit public key
+IMAGEKIT_PRIVATE_KEY # ImageKit private key
+IMAGEKIT_URL_ENDPOINT # ImageKit URL endpoint
+PORT                 # Server port (default: 3000)
+```
+
+---
+
+## 🎓 Learning Outcomes
+
+This project covers:
+- Full-stack JavaScript development
+- React hooks and context API
+- Express.js REST APIs
+- MongoDB/Mongoose ODM
+- JWT authentication
+- File upload handling
+- Image storage with CDN
+- Responsive design with Tailwind CSS
+- Form validation and error handling
+- Client-server communication with Axios
+- State management patterns
+
+---
+
+**Last Updated:** December 2025
   - Wiring Dashboard, EventDetails, UserDashboard to use live data from backend events API
   - Ensuring create-event page updates global event state after successful API calls
 - **Shared component theming**

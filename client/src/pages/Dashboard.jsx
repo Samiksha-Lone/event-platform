@@ -12,8 +12,11 @@ export default function Dashboard() {
     navigate(`/event/${eventId}`);
   };
 
-  const handleRsvp = (eventId) => {
-    rsvp(eventId); // your context rsvp handler
+  const handleRsvp = async (eventId) => {
+    const result = await rsvp(eventId);
+    if (!result.success) {
+      alert(`RSVP Failed: ${result.error}`);
+    }
   };
 
   const handleNavigate = (path) => {
@@ -25,23 +28,13 @@ export default function Dashboard() {
     navigate('/user/login');
   };
 
-  // (optional) stubs – implement later or remove from EventCard props
-  const handleEdit = (event) => {
-    navigate(`/event/${event._id}/edit`);
-  };
-
-  const handleDelete = (eventId) => {
-    // later: call DELETE /event/:id and update context
-    console.log('Delete event', eventId);
-  };
-
   return (
     <div className="min-h-screen transition-colors duration-500 bg-white dark:bg-neutral-950">
       <Navbar
         user={user}
         onNavigate={handleNavigate}
         onLogout={handleLogout}
-        showThemeToggle={true}
+        showThemeToggle={false}
       />
 
       <div className="container-padding">
@@ -86,8 +79,6 @@ export default function Dashboard() {
                     isFull={isFull}
                     onViewDetails={() => handleViewDetails(eventId)}
                     onRsvp={() => handleRsvp(eventId)}
-                    onEdit={() => handleEdit(event)}
-                    onDelete={() => handleDelete(eventId)}
                   />
                 );
               })}

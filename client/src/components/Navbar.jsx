@@ -4,8 +4,12 @@ import { FiUser, FiLogOut } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 import Button from './Button';
 
-export default function Navbar({ user, onNavigate, showThemeToggle = false, onLogout }) {
-  const { theme, toggleTheme } = useTheme();
+export default function Navbar({ user, onNavigate, showThemeToggle = false, onLogout, theme, toggleTheme }) {
+  const { theme: contextTheme, toggleTheme: contextToggleTheme } = useTheme();
+  
+  // Use passed theme/toggleTheme or fall back to context
+  const activeTheme = theme !== undefined ? theme : contextTheme;
+  const handleToggle = toggleTheme || contextToggleTheme;
   
 
   return (
@@ -23,6 +27,17 @@ export default function Navbar({ user, onNavigate, showThemeToggle = false, onLo
           </div>
 
           <div className="flex items-center gap-6">
+
+              {/* Theme Toggle */}
+              {showThemeToggle && (
+                <button
+                  onClick={handleToggle}
+                  className="p-2.5 transition-colors duration-200 rounded-full text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Toggle theme"
+                >
+                  {activeTheme === 'dark' ? <FiSun size={22} /> : <FiMoon size={22} />}
+                </button>
+              )}
 
               {/* Profile Icon with Dropdown */}
               <button
