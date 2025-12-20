@@ -1,8 +1,64 @@
 # Event Platform
 
-A full-featured event management platform built with **React + Vite** frontend and **Express.js + Node.js** backend. Users can create accounts, authenticate securely, create and manage events, RSVP for events, and enjoy a modern UI with theme switching.
+MERN Stack event management platform with JWT auth, event CRUD, RSVP system with capacity enforcement.
+
+## 🚀 Live Deployment
+- **Frontend**: https://your-vercel-app.vercel.app
+- **Backend**: https://your-render-app.onrender.com  
+- **Database**: MongoDB Atlas
+
+## 🛠 Local Setup
+
+```bash
+# Clone repo
+git clone <your-github-repo-url>
+cd Event_platform
+
+# Backend
+cd server
+cp .env.example .env  # Add your keys
+npm install
+npm run dev           # http://localhost:3000
+
+# Frontend (new terminal)
+cd ../client
+npm install
+npm run dev           # http://localhost:5173
+```
+
+**.env required**: `MONGODB_URI`, `JWT_SECRET`, `IMAGEKIT_*` keys
+
+## 🔒 RSVP Concurrency Solution
+
+MongoDB atomic operations prevent race conditions:
+```js
+// server/src/controllers/event.controller.js ~line 120
+await Event.findOneAndUpdate(
+  { _id: eventId, 'rsvps': { $ne: userId }, $expr: { $lt: [{ $size: '$rsvps' }, '$capacity'] } },
+  { $addToSet: { rsvps: userId } }
+)
+```
+- Checks capacity AND user absence atomically
+- `$addToSet` prevents duplicates
+- No transactions needed
+
+## ✅ Features Implemented
+- [x] User auth (JWT, bcrypt, httpOnly cookies)
+- [x] Event CRUD + ImageKit image upload
+- [x] RSVP system (capacity enforcement, no duplicates)
+- [x] Owner-only edit/delete
+- [x] Responsive UI + dark/light theme toggle
+- [x] User dashboard (created/RSVP'd events)
+- [x] Form validation + error handling
+- [x] Production deployment (Vercel/Render/Atlas)
+
+## 📱 Tech Stack
+**Frontend**: React 19 + Vite + Tailwind CSS + Context API  
+**Backend**: Node.js + Express + MongoDB/Mongoose + ImageKit
 
 ---
+**Last Updated**: Dec 20, 2025
+
 
 ## 🎯 Overview
 
