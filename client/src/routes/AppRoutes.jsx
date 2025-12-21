@@ -6,6 +6,9 @@ import Dashboard from '../pages/Dashboard';
 import CreateEvent from '../pages/CreateEvent';
 import EventDetails from '../pages/EventDetails';
 import UserDashboard from '../pages/UserDashboard';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
+import EditEvent from '../pages/EditEvent'
 
 const AppRoutes = () => {
   return (
@@ -18,6 +21,9 @@ const AppRoutes = () => {
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:id" element={<EventDetails />} />
             <Route path="/user-dashboard" element={<UserDashboard />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/edit-event/:id" element={<EditEvent />} />
         </Routes>
     </Router>
   )

@@ -39,17 +39,30 @@ export function validateImage(file, { maxSizeMB = 2 } = {}) {
 }
 
 export function passwordStrength(password = '') {
-  if (!password) return { score: 0, percent: 0, label: '', color: 'bg-red-500' };
+  if (!password) {
+    return { score: 0, percent: 0, label: '', color: 'bg-red-500' };
+  }
+
   let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  const labels = ['Very weak', 'Weak', 'Medium', 'Strong', 'Very strong'];
-  const colors = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-green-600'];
+
+  // base length rule
+  if (password.length >= 8) score += 1;
+
+  // extra rules
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+
+  // SPECIAL CHARACTERS – REQUIRED FOR MAX SCORE
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  if (hasSpecial) score += 2; // give them highest weight
+
+  const maxScore = 5; // 1 + 1 + 1 + 2
+  const labels = ['Very weak', 'Weak', 'Medium', 'Strong', 'Very strong', 'Very strong'];
+  const colors = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-green-600', 'bg-green-600'];
+
   return {
     score,
-    percent: Math.round((score / 4) * 100),
+    percent: Math.round((score / maxScore) * 100),
     label: labels[score],
     color: colors[score],
   };

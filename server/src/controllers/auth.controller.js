@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const userModel = require('../models/user.model');
+const {sendResetEmail} = require('../utils/mailer');
 
 async function registerUser(req, res) {
     try {
@@ -29,7 +30,9 @@ async function registerUser(req, res) {
 
         const token = jwt.sign({
             id: newUser._id,
-        }, process.env.JWT_SECRET);
+        }, process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
 
         res.cookie("token", token, { httpOnly: true, sameSite: 'lax' })
 
@@ -78,7 +81,9 @@ async function loginUser(req, res) {
 
         const token = jwt.sign({
             id: user._id,
-        }, process.env.JWT_SECRET);
+        }, process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
 
         res.cookie("token", token, { httpOnly: true, sameSite: 'lax' })
 
@@ -106,8 +111,132 @@ async function logoutUser(req, res) {
     });
 }
 
+async function getMe(req, res) {
+  res.json({
+    user: req.user
+      ? {
+          id: req.user.id || req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+        }
+      : null,
+  });
+}
+
+async function forgotPassword(req, res) {
+    try {
+
+        const {email} = req.body;
+
+        if(!email) {
+            return res.status(400).json({message: 'Email is required'});
+        }
+
+        const user = await userModel.findOne({ email });
+
+        if(!user) {
+            return res.status(200)
+            .json({
+                message: 'If that email exists, a reset link was sent'
+            })
+        }
+
+        const resetToken =  jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken    }`;
+        await sendResetEmail(user.email, resetLink);
+
+        return res.json({
+            message: 'Password reset link has been sent to your email'
+        })
+
+    } catch (error) {
+
+        console.error('forgotPassword error:', error);
+        return res.status(500).json({ message: 'Server error' });
+
+    }
+}
+
+async function passwordStrength(password = '') {
+  if (!password) {
+    return { score: 0, percent: 0, label: '', color: 'bg-red-500' };
+  }
+
+  let score = 0;
+
+  // base length rule
+  if (password.length >= 8) score += 1;
+
+  // extra rules
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+
+  // SPECIAL CHARACTERS – REQUIRED FOR MAX SCORE
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  if (hasSpecial) score += 2; // give them highest weight
+
+  const maxScore = 5; // 1 + 1 + 1 + 2
+  const labels = ['Very weak', 'Weak', 'Medium', 'Strong', 'Very strong'];
+  const colors = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-green-600'];
+  return {
+    score,
+    percent: Math.round((score / maxScore) * 100),
+    label: labels[score],
+    color: colors[score],
+  };
+}
+
+async function resetPassword(req, res) {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const { score } = passwordStrength(password);
+    if (score < 5) {
+      return res.status(400).json({
+        message:
+          'Password must be at least 8 characters and include uppercase, number and special character.',
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      console.log('jwt verify error:', err.message);
+      return res
+        .status(400)
+        .json({ message: 'Reset link is invalid or has expired' });
+    }
+
+    const user = await userModel.findById(decoded.id);
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid reset link' });
+    }
+
+    // use the validated password from body
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+    await user.save();
+
+    return res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('resetPassword error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+}
+
+
 module.exports = {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    getMe,
+    forgotPassword,
+    resetPassword
 }

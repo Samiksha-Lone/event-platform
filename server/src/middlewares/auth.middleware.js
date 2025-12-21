@@ -4,7 +4,7 @@ const userModel = require("../models/user.model");
 
 async function authenticateToken(req, res, next) {
 
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
     if (!token) {
         return res.status(401).json({ message: "Access Denied: Login First" });
@@ -14,9 +14,13 @@ async function authenticateToken(req, res, next) {
 
         const verified = jwt.verify(token, process.env.JWT_SECRET);
 
-        const user = await userModel.findById(verified.id);
+        const user = await userModel.findById(verified.id).select('-password');
 
-        req.user = user;
+        req.user = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+        };
         next();
 
     } catch(err) {

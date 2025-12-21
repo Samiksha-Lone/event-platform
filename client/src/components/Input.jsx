@@ -10,6 +10,7 @@ export default function Input({
   error = '',
   icon = null,
   className = '',
+  showLabel = true,
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,14 +21,22 @@ export default function Input({
 
   return (
     <div className="w-full">
-      {label && (
-        <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300 transition-colors duration-500">
+      {/* Before */}
+      {/* {label && (
+        <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
+          {label}
+        </label>
+      )} */}
+
+      {showLabel && label && (
+        <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
           {label}
         </label>
       )}
+
       <div className="relative">
         {icon && (
-          <div className="absolute transform -translate-y-1/2 left-4 top-1/2 text-neutral-500 dark:text-gray-400 transition-colors duration-500">
+          <div className="absolute transition-colors duration-500 transform -translate-y-1/2 left-4 top-1/2 text-neutral-500 dark:text-gray-400">
             {icon}
           </div>
         )}
@@ -49,7 +58,7 @@ export default function Input({
           </button>
         )}
       </div>
-      {error && <p className="mt-2 text-base font-bold text-red-700 dark:text-red-400 transition-colors duration-500">{error}</p>}
+      {error && <p className="mt-2 text-base font-bold text-red-700 transition-colors duration-500 dark:text-red-400">{error}</p>}
     </div>
   );
 }

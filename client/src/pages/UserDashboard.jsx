@@ -1,5 +1,6 @@
 // import { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
+
 // import EventCard from '../components/EventCard';
 // import Navbar from '../components/Navbar';
 // import { useAppContext } from '../context/AppProvider';
@@ -9,15 +10,23 @@
 //   const { user, events, logout, deleteEvent, cancelRsvp } = useAppContext();
 //   const [activeTab, setActiveTab] = useState('created');
 
+//   // Helper: normalize ids
+//   const getUserId = () => user?.id || user?._id || null;
+//   const getOwnerId = (e) => {
+//     if (!e.owner) return null;
+//     if (typeof e.owner === 'string') return e.owner;
+//     if (typeof e.owner === 'object') return e.owner._id || null;
+//     return null;
+//   };
+
+//   const currentUserId = getUserId();
+
 //   // Events created by current user
 //   const createdEvents =
 //     events.filter(e => {
-//       // owner can be an object or an id
-//       const ownerId =
-//         typeof e.owner === 'string' ? e.owner : e.owner?._id;
-//       const isOwnerId = ownerId && user && ownerId === user.id;
+//       const ownerId = getOwnerId(e);
+//       const isOwnerId = ownerId && currentUserId && ownerId === currentUserId;
 
-//       // some places may store organizer name as string
 //       const isOrganizerName =
 //         e.organizer && user?.name && e.organizer === user.name;
 
@@ -27,17 +36,18 @@
 //   // Events user is attending but not owning
 //   const attendingEvents =
 //     events.filter(e => {
-//       const ownerId =
-//         typeof e.owner === 'string' ? e.owner : e.owner?._id;
-//       const isOwnerId = ownerId && user && ownerId === user.id;
+//       const ownerId = getOwnerId(e);
+//       const isOwnerId = ownerId && currentUserId && ownerId === currentUserId;
+
 //       const isOrganizerName =
 //         e.organizer && user?.name && e.organizer === user.name;
+
 //       const isOwner = isOwnerId || isOrganizerName;
 
 //       const isAttending = (e.rsvps || []).some(r =>
 //         typeof r === 'string'
-//           ? r === user?.id
-//           : r?._id === user?.id
+//           ? r === currentUserId
+//           : r?._id === currentUserId
 //       );
 
 //       return isAttending && !isOwner;
@@ -47,7 +57,7 @@
 //     navigate(`/event/${eventId}`);
 //   };
 
-//   // Leave (cancel RSVP) from dashboard – uses cancelRsvp from context
+//   // Leave (cancel RSVP) from dashboard
 //   const handleRsvp = async (eventId) => {
 //     const result = await cancelRsvp(eventId);
 //     if (!result?.success) {
@@ -84,6 +94,7 @@
 //         onNavigate={handleNavigate}
 //         showThemeToggle={true}
 //         onLogout={handleLogout}
+//         showIconLogout={true}
 //       />
 
 //       <div className="py-16 container-padding">
@@ -160,7 +171,7 @@
 //                       <EventCard
 //                         key={event._id || event.id}
 //                         event={event}
-//                         isOwnEvent={true}
+//                         isOwnEvent={true} // ensures only Edit/Delete buttons
 //                         onEdit={() =>
 //                           handleEditEvent(event._id || event.id)
 //                         }
@@ -213,8 +224,10 @@
 
 
 
+// src/pages/UserDashboard.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import EventCard from '../components/EventCard';
 import Navbar from '../components/Navbar';
 import { useAppContext } from '../context/AppProvider';
@@ -224,8 +237,8 @@ export default function UserDashboard() {
   const { user, events, logout, deleteEvent, cancelRsvp } = useAppContext();
   const [activeTab, setActiveTab] = useState('created');
 
-  // Helper: normalize ids
-  const getUserId = () => user?.id || user?._id || null;
+  const currentUserId = user?.id || user?._id || null;
+
   const getOwnerId = (e) => {
     if (!e.owner) return null;
     if (typeof e.owner === 'string') return e.owner;
@@ -233,32 +246,21 @@ export default function UserDashboard() {
     return null;
   };
 
-  const currentUserId = getUserId();
-
   // Events created by current user
   const createdEvents =
-    events.filter(e => {
+    events.filter((e) => {
       const ownerId = getOwnerId(e);
-      const isOwnerId = ownerId && currentUserId && ownerId === currentUserId;
-
-      const isOrganizerName =
-        e.organizer && user?.name && e.organizer === user.name;
-
-      return isOwnerId || isOrganizerName;
+      return ownerId && currentUserId && ownerId === currentUserId;
     }) || [];
 
   // Events user is attending but not owning
   const attendingEvents =
-    events.filter(e => {
+    events.filter((e) => {
       const ownerId = getOwnerId(e);
-      const isOwnerId = ownerId && currentUserId && ownerId === currentUserId;
+      const isOwner =
+        ownerId && currentUserId && ownerId === currentUserId;
 
-      const isOrganizerName =
-        e.organizer && user?.name && e.organizer === user.name;
-
-      const isOwner = isOwnerId || isOrganizerName;
-
-      const isAttending = (e.rsvps || []).some(r =>
+      const isAttending = (e.rsvps || []).some((r) =>
         typeof r === 'string'
           ? r === currentUserId
           : r?._id === currentUserId
@@ -271,7 +273,6 @@ export default function UserDashboard() {
     navigate(`/event/${eventId}`);
   };
 
-  // Leave (cancel RSVP) from dashboard
   const handleRsvp = async (eventId) => {
     const result = await cancelRsvp(eventId);
     if (!result?.success) {
@@ -301,6 +302,10 @@ export default function UserDashboard() {
     navigate('/user/login');
   };
 
+  console.log('currentUser', user);
+console.log('events in dashboard', events);
+
+
   return (
     <div className="min-h-screen transition-colors duration-500 bg-white dark:bg-neutral-950">
       <Navbar
@@ -308,6 +313,7 @@ export default function UserDashboard() {
         onNavigate={handleNavigate}
         showThemeToggle={true}
         onLogout={handleLogout}
+        showIconLogout={true}
       />
 
       <div className="py-16 container-padding">
@@ -328,13 +334,17 @@ export default function UserDashboard() {
               <h3 className="text-xl transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
                 Events Created
               </h3>
-              <p className="mt-2 text-2xl font-bold">{createdEvents.length}</p>
+              <p className="mt-2 text-2xl font-bold">
+                {createdEvents.length}
+              </p>
             </div>
             <div className="p-5 transition-all duration-200 bg-white border text-neutral-900 border-neutral-200 rounded-2xl hover:shadow-lg dark:bg-neutral-900 dark:text-neutral-50 dark:border-neutral-800">
               <h3 className="text-xl transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
                 Events Attending
               </h3>
-              <p className="mt-2 text-2xl font-bold">{attendingEvents.length}</p>
+              <p className="mt-2 text-2xl font-bold">
+                {attendingEvents.length}
+              </p>
             </div>
           </div>
 
@@ -384,7 +394,7 @@ export default function UserDashboard() {
                       <EventCard
                         key={event._id || event.id}
                         event={event}
-                        isOwnEvent={true} // ensures only Edit/Delete buttons
+                        isOwnEvent={true}
                         onEdit={() =>
                           handleEditEvent(event._id || event.id)
                         }
@@ -395,7 +405,7 @@ export default function UserDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <div className="italic transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
+                  <div className="italic transition-colors duration-500 text-neutral-600 dark:text-neutral-600">
                     You haven't created any events yet.
                   </div>
                 )}
@@ -416,7 +426,8 @@ export default function UserDashboard() {
                         }
                         onRsvp={() =>
                           handleRsvp(event._id || event.id)
-                        } // leave event
+                        }
+                        isJoined={true}
                       />
                     ))}
                   </div>

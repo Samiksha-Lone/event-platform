@@ -91,3 +91,47 @@ build/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+
+# Git related
+.git/
+.gitkeep
+
+# Node-specific
+npm-shrinkwrap.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Webpack
+webpack.config.*.js
+
+# Babel
+.babelrc
+
+# ESLint
+.eslintignore
+
+# Runtime files
+*.pem
+*.key
+*.cert
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# API related
+api-keys.json
+secrets.json
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z

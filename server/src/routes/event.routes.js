@@ -17,12 +17,12 @@ router.post('/create',
 
 // GET ALL EVENTS
 router.get('/', 
-    authMiddleware.authenticateToken,
+    // authMiddleware.authenticateToken,
     eventController.getEvents);
 
 // GET SINGLE EVENT BY ID
 router.get('/:id',
-    authMiddleware.authenticateToken,
+    // authMiddleware.authenticateToken,
     eventController.getEventById);
 
 // RSVP JOIN

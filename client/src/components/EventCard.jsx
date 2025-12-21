@@ -1,14 +1,13 @@
 import React from 'react';
 import Button from './Button';
-import Card from './Card';
 
 export default function EventCard({
   event = {},
-  onViewDetails = () => {},
-  onRsvp = () => {},
+  onViewDetails,
+  onRsvp,
   isOwnEvent = false,
-  onEdit = null,
-  onDelete = null,
+  onEdit,
+  onDelete,
   isJoined = false,
   isFull = false,
 }) {
@@ -16,143 +15,13 @@ export default function EventCard({
   const title = event.title || event.name || 'Untitled Event';
   const date = event.date || event.datetime || '';
   const location = event.location || '';
-  const capacity = event.capacity || event.capacity === 0 ? event.capacity : '-';
+  const capacity =
+    event.capacity || event.capacity === 0 ? event.capacity : '-';
   const attending = event.attending ?? (event.rsvps ? event.rsvps.length : 0);
-
-  // return (
-  //   <Card className="flex flex-col h-full p-4">
-  //     <div className="flex-1">
-  //       <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-  //       {date && <p className="mb-1 text-sm text-neutral-600">{date}</p>}
-  //       {location && <p className="mb-2 text-sm text-neutral-600">{location}</p>}
-  //       {event.description && (
-  //         <p className="mb-4 text-sm text-neutral-700">{event.description}</p>
-  //       )}
-  //     </div>
-
-  //     <div className="flex items-center justify-between mb-3 text-sm text-neutral-600">
-  //       <div>Capacity: {capacity}</div>
-  //       <div>Attending: {attending}</div>
-  //     </div>
-
-  //     <div className="flex gap-3 mt-auto">
-  //       {isOwnEvent ? (
-  //         <>
-  //           <Button onClick={() => onEdit && onEdit(id)} variant="primary" size="md" className="flex-1">
-  //             Edit
-  //           </Button>
-  //           <Button onClick={() => onDelete && onDelete(id)} variant="danger" size="md" className="flex-1">
-  //             Delete
-  //           </Button>
-  //         </>
-  //       ) : (
-  //         <>
-  //           <Button onClick={() => onViewDetails && onViewDetails(id)} variant="primary" size="md" className="flex-1">
-  //             View
-  //           </Button>
-  //           <Button
-  //             onClick={() => onRsvp && onRsvp(id)}
-  //             variant="secondary"
-  //             size="md"
-  //             className="flex-1"
-  //             disabled={isFull && !isJoined}
-  //           >
-  //             {isJoined ? 'Leave' : isFull ? 'Full' : 'RSVP'}
-  //           </Button>
-  //         </>
-  //       )}
-  //     </div>
-  //   </Card>
-  // );
-
-//   return (
-//   <Card className="flex flex-col h-full overflow-hidden">
-//     {/* Image */}
-//     {event.imageUrl && (
-//       <div className="w-full h-40 overflow-hidden">
-//         <img
-//           src={event.imageUrl}
-//           alt={title}
-//           className="object-cover w-full h-full"
-//         />
-//       </div>
-//     )}
-
-//     {/* Content */}
-//     <div className="flex flex-col flex-1 p-4">
-//       <div className="flex-1">
-//         <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-//         {date && (
-//           <p className="mb-1 text-sm text-neutral-600">
-//             {date}
-//           </p>
-//         )}
-//         {location && (
-//           <p className="mb-2 text-sm text-neutral-600">
-//             {location}
-//           </p>
-//         )}
-//         {event.description && (
-//           <p className="mb-4 text-sm text-neutral-700 line-clamp-3">
-//             {event.description}
-//           </p>
-//         )}
-//       </div>
-
-//       <div className="flex items-center justify-between mb-3 text-sm text-neutral-600">
-//         <div>Capacity: {capacity}</div>
-//         <div>Attending: {attending}</div>
-//       </div>
-
-//       {/* Actions */}
-//       <div className="flex gap-3 mt-auto">
-//         <Button
-//           onClick={() => onViewDetails && onViewDetails(id)}
-//           variant="primary"
-//           size="md"
-//           className="flex-1"
-//         >
-//           View
-//         </Button>
-
-//         <Button
-//           onClick={() => onRsvp && onRsvp(id)}
-//           variant="secondary"
-//           size="md"
-//           className="flex-1"
-//           disabled={isFull && !isJoined}
-//         >
-//           {isJoined ? 'Leave' : isFull ? 'Full' : 'RSVP'}
-//         </Button>
-
-//         {isOwnEvent && (
-//           <>
-//             <Button
-//               onClick={() => onEdit && onEdit(id)}
-//               variant="ghost"
-//               size="md"
-//               className="px-3"
-//             >
-//               Edit
-//             </Button>
-//             <Button
-//               onClick={() => onDelete && onDelete(id)}
-//               variant="danger"
-//               size="md"
-//               className="px-3"
-//             >
-//               Delete
-//             </Button>
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   </Card>
-// );
 
   return (
     <div className="flex flex-col h-full overflow-hidden transition-all duration-200 bg-white border rounded-2xl dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:shadow-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/30">
-      {/* Image Container - Gradient placeholder */}
+      {/* Image */}
       <div className="relative flex items-center justify-center flex-shrink-0 w-full h-64 overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-700">
         {event.image ? (
           <img
@@ -165,94 +34,132 @@ export default function EventCard({
           />
         ) : (
           <div className="flex items-center justify-center w-full h-full">
-          <svg className="w-24 h-24 text-indigo-200 opacity-50" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M4 5a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
-          </svg>
+            <svg
+              className="w-24 h-24 text-indigo-200 opacity-50"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M4 5a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
+            </svg>
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-6">
-        {/* Title */}
-        <h3 className="mb-5 text-2xl font-bold text-neutral-900 dark:text-white line-clamp-2">{title}</h3>
-        
-        {/* Date & Location */}
+        <h3 className="mb-5 text-2xl font-bold text-neutral-900 dark:text-white line-clamp-2">
+          {title}
+        </h3>
+
         <div className="mb-6 space-y-3">
           {date && (
             <div className="flex items-center gap-3">
-              <svg className="flex-shrink-0 w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="flex-shrink-0 w-5 h-5 text-indigo-600 dark:text-indigo-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
-              <p className="text-base text-neutral-600 dark:text-gray-300">{date}</p>
+              <p className="text-base text-neutral-600 dark:text-gray-300">
+                {date}
+              </p>
             </div>
           )}
           {location && (
             <div className="flex items-center gap-3">
-              <svg className="flex-shrink-0 w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="flex-shrink-0 w-5 h-5 text-indigo-600 dark:text-indigo-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
-              <p className="text-base text-neutral-600 dark:text-gray-300">{location}</p>
+              <p className="text-base text-neutral-600 dark:text-gray-300">
+                {location}
+              </p>
             </div>
           )}
         </div>
 
-        {/* Attending Info */}
         <div className="flex items-center justify-between pt-4 mb-6 text-sm border-t border-neutral-200 dark:border-neutral-700">
-          <span className="text-sm font-medium text-neutral-600 dark:text-gray-400">{attending} / {capacity} attending</span>
+          <span className="text-sm font-medium text-neutral-600 dark:text-gray-400">
+            {attending} / {capacity} attending
+          </span>
         </div>
 
-        {/* Actions - buttons render only if handler is passed */}
+        {/* Actions */}
         <div className="flex gap-3 mt-auto">
-          {onViewDetails && (
-            <Button
-              onClick={() => onViewDetails(id)}
-              variant="primary"
-              size="md"
-              className="flex-1 text-lg"
-            >
-              View
-            </Button>
-          )}
+          {isOwnEvent ? (
+            <>
+              {onEdit && (
+                <Button
+                  onClick={() => onEdit(id)}
+                  variant="secondary"
+                  size="md"
+                  className="flex-1 text-lg"
+                >
+                  Edit
+                </Button>
+              )}
 
-          {onEdit && (
-            <Button
-              onClick={() => onEdit(id)}
-              variant="ghost"
-              size="md"
-              className="px-3"
-            >
-              Edit
-            </Button>
-          )}
+              {onDelete && (
+                <Button
+                  onClick={() => onDelete(id)}
+                  variant="danger"
+                  size="md"
+                  className="flex-1 text-lg"
+                >
+                  Delete
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              {onViewDetails && (
+                <Button
+                  onClick={() => onViewDetails(id)}
+                  variant="primary"
+                  size="md"
+                  className="flex-1 text-lg"
+                >
+                  View
+                </Button>
+              )}
 
-          {onRsvp && (
-            <Button
-              onClick={() => onRsvp(id)}
-              variant={isJoined ? 'danger' : 'secondary'}
-              size="md"
-              className="flex-1 text-lg"
-              disabled={isFull && !isJoined}
-            >
-              {isJoined ? 'Leave Event' : isFull ? 'Event Full' : 'RSVP'}
-            </Button>
-          )}
-
-          {onDelete && (
-            <Button
-              onClick={() => onDelete(id)}
-              variant="danger"
-              size="md"
-              className="px-3"
-            >
-              Delete
-            </Button>
+              {onRsvp && (
+                <Button
+                  onClick={() => onRsvp(id)}
+                  variant={isJoined ? 'danger' : 'secondary'}
+                  size="md"
+                  className="flex-1 text-lg"
+                  disabled={isFull && !isJoined}
+                >
+                  {isJoined ? 'Leave Event' : isFull ? 'Event Full' : 'RSVP'}
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
     </div>
   );
-
-  
 }
