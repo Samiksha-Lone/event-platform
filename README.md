@@ -4,6 +4,11 @@ EventHub is a full‑stack event management platform built with the MERN stack. 
 
 ---
 
+## 🌐 Live Demo
+
+- Frontend: https://event-platform-client-beryl.vercel.app
+- Backend API: https://event-platform-upf6.onrender.com
+
 ## ✨ Features
 
 - **User authentication**
