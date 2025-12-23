@@ -187,6 +187,53 @@ The React app will be available at `http://localhost:5173`.
 
 ---
 
+## 🚀 Deployment Guide
+
+### **Backend (Render)**
+
+1. Push your code to GitHub.
+2. On Render.com:
+   - Create a new **Web Service**, connect your GitHub repo.
+   - Set **Build Command**: `npm install`
+   - Set **Start Command**: `node server.js`
+   - Add environment variables under **Settings > Environment**:
+     ```
+     MONGO_URI=<your_mongodb_uri>
+     JWT_SECRET=<your_jwt_secret>
+     CLIENT_URL=https://your-vercel-frontend-url.vercel.app
+     IMAGEKIT_PUBLIC_KEY=<key>
+     IMAGEKIT_PRIVATE_KEY=<key>
+     IMAGEKIT_URL_ENDPOINT=<endpoint>
+     SMTP_USER=<your_smtp_user>
+     SMTP_PASS=<your_smtp_password>
+     PORT=3000
+     ```
+   - Deploy and note the URL (e.g., `https://event-platform-upf6.onrender.com`).
+
+### **Frontend (Vercel)**
+
+1. Push your code to GitHub.
+2. On Vercel:
+   - Import your GitHub repository.
+   - Framework preset: **Vite**
+   - Root directory: `./client`
+   - Build command: `npm run build`
+   - Output directory: `dist`
+3. **Critical**: Set environment variables under **Settings > Environment Variables**:
+   ```
+   VITE_API_URL=https://your-render-backend-url.onrender.com
+   ```
+4. Deploy.
+
+### **Key Points**
+
+- **Never commit `.env` files** to GitHub. Use `.env.example` as a template.
+- **VITE_API_URL** must be set on Vercel (not read from `.env`); Vercel does not expose `.env` files in the build.
+- The backend's **CLIENT_URL** must match your Vercel frontend origin for CORS and password reset links.
+- If you see `localhost:3000` errors in the browser, ensure `VITE_API_URL` is set in Vercel's environment variables and redeploy.
+
+---
+
 ## 🧪 Development Notes
 
 - Backend logs include detailed messages for authentication, RSVP, and event update flows to make debugging easier.
