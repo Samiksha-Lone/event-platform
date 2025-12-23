@@ -6,6 +6,8 @@ import Navbar from '../components/Navbar';
 import { useAppContext } from '../context/AppProvider';
 import { useTheme } from '../context/ThemeContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ export default function EventDetails() {
       try {
         setLoading(true);
 
-        const response = await axios.get(`http://localhost:3000/event/${id}`, {
+        const response = await axios.get(`${API_BASE_URL}/event/${id}`, {
           withCredentials: true,
           headers: { 'Content-Type': 'application/json' },
         });
@@ -90,7 +92,7 @@ export default function EventDetails() {
   const handleRsvp = async () => {
   try {
     const res = await axios.post(
-      `http://localhost:3000/event/${event.id}/rsvp`,
+      `${API_BASE_URL}/event/${event.id}/rsvp`,
       {},
       { withCredentials: true }
     );
@@ -120,7 +122,7 @@ export default function EventDetails() {
 const handleCancel = async () => {
   try {
     const res = await axios.delete(
-      `http://localhost:3000/event/${event.id}/rsvp`,
+      `${API_BASE_URL}/event/${event.id}/rsvp`,
       { withCredentials: true }
     );
 

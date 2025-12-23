@@ -8,6 +8,8 @@ import { validateEmail, validatePassword } from '../utils/validation';
 import { useAppContext } from '../context/AppProvider';
 import { FiMail, FiLock } from 'react-icons/fi';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAppContext(); // Get user for Navbar
@@ -45,7 +47,7 @@ export default function Login() {
       setErrors({});
       setSuccess('');
       try {
-        const response = await axios.post("http://localhost:3000/auth/login", formData, {
+        const response = await axios.post(`${API_BASE_URL}/auth/login`, formData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'

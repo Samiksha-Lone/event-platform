@@ -342,6 +342,8 @@ import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppProvider";
 import Navbar from "../components/Navbar";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const CreateEvent = () => {
   const navigate = useNavigate();
   const { addEvent, user } = useAppContext();
@@ -410,14 +412,14 @@ const CreateEvent = () => {
         formdata.append("location", form.location);
         formdata.append("image", form.imageFile);
 
-        response = await axios.post("http://localhost:3000/event/create", formdata, {
+        response = await axios.post(`${API_BASE_URL}/event/create`, formdata, {
           withCredentials: true,
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
         // JSON body with imageUrl (backend must support this)
         response = await axios.post(
-          "http://localhost:3000/event/create",
+          `${API_BASE_URL}/event/create`,
           {
             title: form.title,
             description: form.description,

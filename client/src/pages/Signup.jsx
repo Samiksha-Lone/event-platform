@@ -11,6 +11,8 @@ import { validateName, validateEmail, validateConfirm, passwordStrength } from '
 import { useAppContext } from '../context/AppProvider';
 import { useTheme } from '../context/ThemeContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export default function Signup() {
   const navigate = useNavigate();
   const { login, user } = useAppContext(); // Get user for Navbar
@@ -65,7 +67,7 @@ export default function Signup() {
       setErrors({});
       setSuccess('');
       try {
-        const response = await axios.post("http://localhost:3000/auth/register", formData, {
+        const response = await axios.post(`${API_BASE_URL}/auth/register`, formData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
