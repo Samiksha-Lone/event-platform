@@ -21,13 +21,7 @@ export default function Input({
 
   return (
     <div className="w-full">
-      {/* Before */}
-      {/* {label && (
-        <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
-          {label}
-        </label>
-      )} */}
-
+      
       {showLabel && label && (
         <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
           {label}

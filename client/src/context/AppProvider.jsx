@@ -9,9 +9,6 @@ import { api } from '../utils/api';
 
 const AppContext = createContext(null);
 
-// Backend base URL is configured in src/utils/api.js (API_BASE_URL)
-
-// Normalize event IDs
 const normalizeEventId = (event) => {
   let id = event.id;
 

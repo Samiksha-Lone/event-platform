@@ -4,8 +4,6 @@
 .env.development.local
 .env.test.local
 .env.production.local
-
-# Keep .env.example in repo
 !.env.example
 
 # Logs
@@ -17,11 +15,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node modules
+# Node modules & Dependencies
 node_modules/
 **/node_modules/
+.pnp
+.pnp.js
 
-# Build / output
+# Package Manager Files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-shrinkwrap.json
+
+# Build & Output
 dist/
 dist-ssr/
 build/
@@ -33,9 +39,10 @@ server/build/
 .next/
 .cache/
 
+# IDE & Editor
 .vscode/
 .idea/
-.DS_Store
+*.sublime-workspace
 *.suo
 *.ntvs*
 *.njsproj
@@ -51,86 +58,43 @@ server/build/
 .settings/
 .history
 
-# OS specific files
+# OS Specific
+.DS_Store
 Thumbs.db
 .AppleDouble
 .LSOverride
-*.sublime-workspace
-
-# Dependencies
-.pnp
-.pnp.js
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Misc
-coverage/
-*.local
-*.tmp
-tmp/
-temp/
-
-# Test coverage
-lcov.info
-.nyc_output/
-
-# Production build folder
-build/
-
-# Lockfiles - commit these for consistent installs
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# IDE configuration per developer (VS Code workspace settings)
-.vscode/settings.json
-.vscode/launch.json
-.vscode/tasks.json
-
-# macOS
 .Spotlight-V100
 .Trashes
 ehthumbs.db
 
-# Git related
-# Do NOT ignore .git directory
-# Keep .gitkeep files if used to track empty dirs
+# NPM Cache
+.npm
+.eslintcache
 
-# Node-specific
-npm-shrinkwrap.json
+# Testing & Coverage
+coverage/
+lcov.info
+.nyc_output/
 
-
-# Webpack
-webpack.config.*.js
-
-# Babel
-.babelrc
-
-# ESLint
-.eslintignore
-
-# Runtime files
+# Runtime & Security Files
 *.pem
 *.key
 *.cert
+api-keys.json
+secrets.json
 
-# Database files
+# Database Files
 *.db
 *.sqlite
 *.sqlite3
 
-# API related
-api-keys.json
-secrets.json
-
-# Backup files
+# Temporary & Backup Files
+*.local
+*.tmp
 *.bak
 *.backup
-*~
+tmp/
+temp/
 
 # Archives
 *.zip
@@ -138,9 +102,7 @@ secrets.json
 *.rar
 *.7z
 
-# IDE workspace files often committed per-developer; ignore them
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.vscode/**/settings.json
-.vscode/**/launch.json
-.vscode/**/tasks.json
+# Build Tools
+webpack.config.*.js
+.babelrc
+.eslintignore
