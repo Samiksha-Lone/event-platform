@@ -1,12 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../utils/api';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import { useAppContext } from '../context/AppProvider';
 import { useTheme } from '../context/ThemeContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// use centralized `api` instance from src/utils/api.js
 
 export default function EventDetails() {
   const { id } = useParams();
@@ -23,10 +23,7 @@ export default function EventDetails() {
       try {
         setLoading(true);
 
-        const response = await axios.get(`${API_BASE_URL}/event/${id}`, {
-          withCredentials: true,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        const response = await api.get(`/event/${id}`);
 
         if (response.data?.event) {
           const ev = response.data.event;
@@ -91,11 +88,7 @@ export default function EventDetails() {
 
   const handleRsvp = async () => {
   try {
-    const res = await axios.post(
-      `${API_BASE_URL}/event/${event.id}/rsvp`,
-      {},
-      { withCredentials: true }
-    );
+    const res = await api.post(`/event/${event.id}/rsvp`);
 
     // Use backend data if provided
     if (res.data?.attendingCount !== undefined) {
@@ -121,10 +114,7 @@ export default function EventDetails() {
 
 const handleCancel = async () => {
   try {
-    const res = await axios.delete(
-      `${API_BASE_URL}/event/${event.id}/rsvp`,
-      { withCredentials: true }
-    );
+    const res = await api.delete(`/event/${event.id}/rsvp`);
 
     if (res.data?.attendingCount !== undefined) {
       setEvent(prev => ({

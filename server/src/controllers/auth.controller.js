@@ -34,7 +34,14 @@ async function registerUser(req, res) {
         { expiresIn: '7d' }
     );
 
-        res.cookie("token", token, { httpOnly: true, sameSite: 'lax' })
+        // For cross-site cookies when frontend and backend are on different domains,
+        // set `sameSite: 'none'` and `secure: true` in production.
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
 
         res.status(201).json({ 
             message: 'User registered successfully', 
@@ -85,7 +92,14 @@ async function loginUser(req, res) {
         { expiresIn: '7d' }
     );
 
-        res.cookie("token", token, { httpOnly: true, sameSite: 'lax' })
+        // For cross-site cookies when frontend and backend are on different domains,
+        // set `sameSite: 'none'` and `secure: true` in production.
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
 
         console.log('Login successful for:', email);
 

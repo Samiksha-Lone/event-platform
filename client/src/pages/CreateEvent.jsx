@@ -336,13 +336,13 @@
 
 
 import { useState } from "react";
-import axios from "axios";
+import { api } from '../utils/api';
 import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppProvider";
 import Navbar from "../components/Navbar";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// API calls use the centralized `api` instance (baseURL is configured in src/utils/api.js)
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -412,14 +412,13 @@ const CreateEvent = () => {
         formdata.append("location", form.location);
         formdata.append("image", form.imageFile);
 
-        response = await axios.post(`${API_BASE_URL}/event/create`, formdata, {
-          withCredentials: true,
+        response = await api.post('/event/create', formdata, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
         // JSON body with imageUrl (backend must support this)
-        response = await axios.post(
-          `${API_BASE_URL}/event/create`,
+        response = await api.post(
+          '/event/create',
           {
             title: form.title,
             description: form.description,

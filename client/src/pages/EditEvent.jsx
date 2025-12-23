@@ -1,12 +1,12 @@
 // src/pages/EditEvent.jsx
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from '../utils/api';
 import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppProvider';
 import Navbar from '../components/Navbar';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// API base is configured in src/utils/api.js
 
 export default function EditEvent() {
   const navigate = useNavigate();
@@ -36,9 +36,7 @@ export default function EditEvent() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/event/${id}`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/event/${id}`);
         const ev = res.data.event;
 
         setForm({
@@ -101,15 +99,14 @@ export default function EditEvent() {
         formdata.append('location', form.location);
         formdata.append('image', form.imageFile);
 
-        res = await axios.put(`${API_BASE_URL}/event/${id}`, formdata, {
-          withCredentials: true,
+        res = await api.put(`/event/${id}`, formdata, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
       // If user chose URL → JSON
       else if (imageMode === 'url' && form.imageUrl) {
-        res = await axios.put(
-          `${API_BASE_URL}/event/${id}`,
+        res = await api.put(
+          `/event/${id}`,
           {
             title: form.title,
             description: form.description,
@@ -125,8 +122,8 @@ export default function EditEvent() {
       }
       // Keep existing image
       else {
-        res = await axios.put(
-          `${API_BASE_URL}/event/${id}`,
+        res = await api.put(
+          `/event/${id}`,
           {
             title: form.title,
             description: form.description,

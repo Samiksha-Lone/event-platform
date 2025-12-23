@@ -1,7 +1,12 @@
 # Environment Variables
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keep .env.example in repo
+!.env.example
 
 # Logs
 logs/
@@ -14,21 +19,21 @@ lerna-debug.log*
 
 # Node modules
 node_modules/
-client/node_modules/
-server/node_modules/
+**/node_modules/
 
-# Build outputs
+# Build / output
 dist/
 dist-ssr/
 build/
 client/dist/
 client/build/
-client/.vite/
 server/build/
+.vite/
+.parcel-cache/
+.next/
+.cache/
 
-# IDE and Editor directories
 .vscode/
-!.vscode/extensions.json
 .idea/
 .DS_Store
 *.suo
@@ -48,7 +53,6 @@ server/build/
 
 # OS specific files
 Thumbs.db
-.DS_Store
 .AppleDouble
 .LSOverride
 *.sublime-workspace
@@ -77,10 +81,10 @@ lcov.info
 # Production build folder
 build/
 
-# Package manager lock files (optional - uncomment if needed)
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# Lockfiles - commit these for consistent installs
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # IDE configuration per developer (VS Code workspace settings)
 .vscode/settings.json
@@ -93,14 +97,12 @@ build/
 ehthumbs.db
 
 # Git related
-.git/
-.gitkeep
+# Do NOT ignore .git directory
+# Keep .gitkeep files if used to track empty dirs
 
 # Node-specific
 npm-shrinkwrap.json
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+
 
 # Webpack
 webpack.config.*.js
@@ -135,3 +137,10 @@ secrets.json
 *.tar.gz
 *.rar
 *.7z
+
+# IDE workspace files often committed per-developer; ignore them
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.vscode/**/settings.json
+.vscode/**/launch.json
+.vscode/**/tasks.json

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 import Card from '../components/Card';
@@ -7,11 +6,12 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import { FiUser, FiMail, FiLock } from 'react-icons/fi';
+import { api } from '../utils/api';
 import { validateName, validateEmail, validateConfirm, passwordStrength } from '../utils/validation';
 import { useAppContext } from '../context/AppProvider';
 import { useTheme } from '../context/ThemeContext';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// API base is configured in src/utils/api.js
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -67,12 +67,7 @@ export default function Signup() {
       setErrors({});
       setSuccess('');
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/register`, formData, {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await api.post('/auth/register', formData);
 
         // Check if registration was successful (status 200-299)
         if (response.status === 201 || response.status === 200) {

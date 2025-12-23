@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../utils/api';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { passwordStrength } from '../utils/validation'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Uses centralized API instance (src/utils/api.js)
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -22,11 +22,7 @@ export default function ResetPassword() {
     setError('');
     
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/auth/reset-password/${token}`, 
-        { password },
-        { headers: { 'Content-Type': 'application/json' } }
-    );
+      const res = await api.post(`/auth/reset-password/${token}`, { password });
 
     const { score } = passwordStrength(password);
     if (score < 5) {

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 import Input from '../components/Input';
@@ -7,8 +6,7 @@ import Button from '../components/Button';
 import { validateEmail, validatePassword } from '../utils/validation';
 import { useAppContext } from '../context/AppProvider';
 import { FiMail, FiLock } from 'react-icons/fi';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { api } from '../utils/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -47,12 +45,7 @@ export default function Login() {
       setErrors({});
       setSuccess('');
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/login`, formData, {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await api.post('/auth/login', formData);
 
         // Check if login was successful (status 200-299)
         if (response.status === 200) {

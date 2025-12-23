@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { api } from '../utils/api';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Uses centralized API instance (src/utils/api.js)
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export default function ForgotPassword() {
     setMsg('');
     setError('');
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
+      const res = await api.post('/auth/forgot-password', { email });
       setMsg(res.data.message);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');

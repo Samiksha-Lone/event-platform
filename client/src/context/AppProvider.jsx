@@ -5,11 +5,11 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { api } from '../utils/api';
 
 const AppContext = createContext(null);
 
-// Backend base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Backend base URL is configured in src/utils/api.js (API_BASE_URL)
 
 // Normalize event IDs
 const normalizeEventId = (event) => {
@@ -135,17 +135,11 @@ export function AppProvider({ children }) {
   const fetchEvents = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
-
-      const response = await fetch(`${API_BASE_URL}/event`, {
+      const response = await api.get('/event', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
-      if (!response.ok) {
-        console.error('Failed to fetch events', response.status);
-        return;
-      }
-
-      const data = await response.json();
+      const data = response.data;
       const rawEvents = Array.isArray(data) ? data : data.events || [];
 
       dispatch({ type: 'SET_EVENTS', payload: rawEvents });
@@ -172,8 +166,7 @@ export function AppProvider({ children }) {
   const deleteEvent = async (id) => {
     try {
       const token = localStorage.getItem('authToken');
-      await fetch(`${API_BASE_URL}/event/${id}`, {
-        method: 'DELETE',
+      await api.delete(`/event/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
     } catch (err) {
@@ -185,18 +178,13 @@ export function AppProvider({ children }) {
   const rsvp = async (eventId) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/event/${eventId}/rsvp`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await api.post(`/event/${eventId}/rsvp`, {}, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!response.ok) {
-        const error = await response.json();
+      if (response.status < 200 || response.status >= 300) {
+        const error = response.data || {};
         return { success: false, error: error.message || 'Failed to RSVP' };
       }
-      await response.json();
       dispatch({ type: 'RSVP', payload: { eventId, userId: state.user?.id } });
       return { success: true };
     } catch (err) {
@@ -208,18 +196,13 @@ export function AppProvider({ children }) {
   const cancelRsvp = async (eventId) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/event/${eventId}/rsvp`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await api.delete(`/event/${eventId}/rsvp`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!response.ok) {
-        const error = await response.json();
+      if (response.status < 200 || response.status >= 300) {
+        const error = response.data || {};
         return { success: false, error: error.message || 'Failed to cancel RSVP' };
       }
-      await response.json();
       dispatch({
         type: 'CANCEL_RSVP',
         payload: { eventId, userId: state.user?.id },
