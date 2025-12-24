@@ -59,6 +59,14 @@ const CreateEvent = () => {
     }
 
     try {
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setError('Please login again before creating an event.');
+        setLoading(false);
+        return;
+      }
+
       let response;
 
       if (imageMode === "file") {
@@ -90,7 +98,12 @@ const CreateEvent = () => {
             location: form.location,
             imageUrl: form.imageUrl,
           },
-          { withCredentials: true }
+          { withCredentials: true ,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+            
         );
       }
 
