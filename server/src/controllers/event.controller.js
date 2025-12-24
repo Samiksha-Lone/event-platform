@@ -233,7 +233,6 @@ async function updateEvent(req, res) {
   }
 }
 
-
 // DELETE EVENT (only owner)
 async function deleteEvent(req, res) {
   try {

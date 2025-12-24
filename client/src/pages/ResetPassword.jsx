@@ -5,8 +5,6 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 import { passwordStrength } from '../utils/validation'
 
-// Uses centralized API instance (src/utils/api.js)
-
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();

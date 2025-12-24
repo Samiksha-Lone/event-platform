@@ -11,8 +11,6 @@ import { validateName, validateEmail, validateConfirm, passwordStrength } from '
 import { useAppContext } from '../context/AppProvider';
 import { useTheme } from '../context/ThemeContext';
 
-// API base is configured in src/utils/api.js
-
 export default function Signup() {
   const navigate = useNavigate();
   const { login, user } = useAppContext(); // Get user for Navbar

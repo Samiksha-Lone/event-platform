@@ -106,3 +106,24 @@ temp/
 webpack.config.*.js
 .babelrc
 .eslintignore
+
+# Deployment / hosting
+.vercel/
+/.vercel/
+.netlify/
+/.netlify/
+.render/
+/.render/
+vercel.json
+now.json
+netlify.toml
+
+# Ignore environment files inside client/server folders
+client/.env
+client/.env.local
+server/.env
+server/.env.local
+
+# Ignore any env.* files in subfolders
+**/.env
+**/.env.local

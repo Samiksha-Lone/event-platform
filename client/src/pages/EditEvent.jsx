@@ -1,12 +1,9 @@
-// src/pages/EditEvent.jsx
 import { useEffect, useState } from 'react';
 import { api } from '../utils/api';
 import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppProvider';
 import Navbar from '../components/Navbar';
-
-// API base is configured in src/utils/api.js
 
 export default function EditEvent() {
   const navigate = useNavigate();

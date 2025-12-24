@@ -11,10 +11,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:3000', 'http://localhost:5172', 'http://localhost:5173',
-  'https://localhost:3000', 'https://localhost:5173',
-  /.vercel\.app$/
+  process.env.CLIENT_URL || 'http://localhost:5173', 
 ];
 
 app.use(cors({

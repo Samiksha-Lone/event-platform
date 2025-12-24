@@ -6,8 +6,6 @@ import Navbar from '../components/Navbar';
 import { useAppContext } from '../context/AppProvider';
 import { useTheme } from '../context/ThemeContext';
 
-// use centralized `api` instance from src/utils/api.js
-
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();

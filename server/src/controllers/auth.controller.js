@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const userModel = require('../models/user.model');
 const {sendResetEmail} = require('../utils/mailer');
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 async function registerUser(req, res) {
     try {
@@ -34,12 +35,10 @@ async function registerUser(req, res) {
         { expiresIn: '7d' }
     );
 
-        // For cross-site cookies when frontend and backend are on different domains,
-        // set `sameSite: 'none'` and `secure: true` in production.
         res.cookie("token", token, {
             httpOnly: true,
-            sameSite: 'none',
-            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            secure: false,
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
 
@@ -92,12 +91,10 @@ async function loginUser(req, res) {
         { expiresIn: '7d' }
     );
 
-        // For cross-site cookies when frontend and backend are on different domains,
-        // set `sameSite: 'none'` and `secure: true` in production.
         res.cookie("token", token, {
             httpOnly: true,
-            sameSite: 'none',
-            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            secure: false,
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
 
@@ -161,7 +158,7 @@ async function forgotPassword(req, res) {
             { expiresIn: '15m' }
         );
 
-        const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken    }`;
+        const resetLink = `${CLIENT_URL}/reset-password/${resetToken}`;
         await sendResetEmail(user.email, resetLink);
 
         return res.json({

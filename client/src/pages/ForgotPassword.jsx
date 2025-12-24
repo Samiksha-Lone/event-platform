@@ -3,8 +3,6 @@ import { api } from '../utils/api';
 import Input from '../components/Input';
 import Button from '../components/Button';
 
-// Uses centralized API instance (src/utils/api.js)
-
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [msg, setMsg] = useState('');

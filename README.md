@@ -4,11 +4,6 @@ EventHub is a full‑stack event management platform built with the MERN stack. 
 
 ---
 
-## 🌐 Live Demo
-
-- Frontend: https://event-platform-client-beryl.vercel.app
-- Backend API: https://event-platform-upf6.onrender.com
-
 ## ✨ Features
 
 - **User authentication**
@@ -66,7 +61,6 @@ EventHub is a full‑stack event management platform built with the MERN stack. 
 **Infrastructure**
 
 - MongoDB Atlas for database (local MongoDB also supported)
-- Designed for deployment on platforms like Render (backend) and Vercel / Netlify (frontend)
 
 ---
 
@@ -117,22 +111,23 @@ cd server
 npm install
 ```
 
-Create a `.env` file in the `server` folder:
+Create a `.env` file in the `server` folder (see [server/.env.example](server/.env.example) for fields):
 
 ```
 PORT=3000
 MONGO_URI=<your-mongodb-connection-string>
 JWT_SECRET=<your-jwt-secret>
+# IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT (optional)
+# SMTP_USER, SMTP_PASS (optional for email)
 CLIENT_URL=http://localhost:5173
 ```
 
-Run the backend:
+Run the backend (from `server`):
 
-```
+```bash
+npm install
 npm run dev   # or: npm start
 ```
-
-The server will start on `http://localhost:3000`.
 
 ### 3. Frontend setup
 
@@ -141,19 +136,19 @@ cd ../client
 npm install
 ```
 
-Create a `.env` file in `client`:
+Create a `.env` file in the `client` folder (see [client/.env.example](client/.env.example)) and set:
 
 ```
 VITE_API_URL=http://localhost:3000
+CLIENT_URL=http://localhost:5173
 ```
 
-Run the frontend:
+Run the frontend (from `client`):
 
-```
+```bash
+npm install
 npm run dev
 ```
-
-The React app will be available at `http://localhost:5173`.
 
 ---
 
@@ -187,50 +182,9 @@ The React app will be available at `http://localhost:5173`.
 
 ---
 
-## 🚀 Deployment Guide
+## Notes on Deployment
 
-### **Backend (Render)**
-
-1. Push your code to GitHub.
-2. On Render.com:
-   - Create a new **Web Service**, connect your GitHub repo.
-   - Set **Build Command**: `npm install`
-   - Set **Start Command**: `node server.js`
-   - Add environment variables under **Settings > Environment**:
-     ```
-     MONGO_URI=<your_mongodb_uri>
-     JWT_SECRET=<your_jwt_secret>
-     CLIENT_URL=https://your-vercel-frontend-url.vercel.app
-     IMAGEKIT_PUBLIC_KEY=<key>
-     IMAGEKIT_PRIVATE_KEY=<key>
-     IMAGEKIT_URL_ENDPOINT=<endpoint>
-     SMTP_USER=<your_smtp_user>
-     SMTP_PASS=<your_smtp_password>
-     PORT=3000
-     ```
-   - Deploy and note the URL (e.g., `https://event-platform-upf6.onrender.com`).
-
-### **Frontend (Vercel)**
-
-1. Push your code to GitHub.
-2. On Vercel:
-   - Import your GitHub repository.
-   - Framework preset: **Vite**
-   - Root directory: `./client`
-   - Build command: `npm run build`
-   - Output directory: `dist`
-3. **Critical**: Set environment variables under **Settings > Environment Variables**:
-   ```
-   VITE_API_URL=https://your-render-backend-url.onrender.com
-   ```
-4. Deploy.
-
-### **Key Points**
-
-- **Never commit `.env` files** to GitHub. Use `.env.example` as a template.
-- **VITE_API_URL** must be set on Vercel (not read from `.env`); Vercel does not expose `.env` files in the build.
-- The backend's **CLIENT_URL** must match your Vercel frontend origin for CORS and password reset links.
-- If you see `localhost:3000` errors in the browser, ensure `VITE_API_URL` is set in Vercel's environment variables and redeploy.
+This repo has been simplified for local development. Deployment-related example values and platform-specific guides were removed. If you plan to deploy later, add the appropriate environment variables (see `server/.env.example` and `client/.env.example`) and update CORS origins in [server/src/app.js](server/src/app.js#L1-L100).
 
 ---
 
@@ -247,9 +201,9 @@ The React app will be available at `http://localhost:5173`.
 
 ---
 
-## 🧑‍💻 Project Owner
+## Project Owner
 
 **Samiksha Lone**
 
-- Email: `samikshalone2@gmail.com`
-- GitHub: `https://github.com/Samiksha-Lone`
+- Email: samikshalone2@gmail.com
+- GitHub: https://github.com/Samiksha-Lone

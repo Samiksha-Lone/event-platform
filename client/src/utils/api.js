@@ -1,10 +1,11 @@
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export const api = axios.create({
-  baseURL: 'https://event-platform-upf6.onrender.com',  // HARDCODED
+  baseURL: API_BASE,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
-console.log('API_BASE_URL:', 'https://event-platform-upf6.onrender.com');
 export default api;
