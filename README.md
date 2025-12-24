@@ -111,7 +111,7 @@ cd server
 npm install
 ```
 
-Create a `.env` file in the `server` folder (see [server/.env.example](server/.env.example) for fields):
+Create a `.env` file in the `server`:
 
 ```
 PORT=3000
@@ -136,7 +136,7 @@ cd ../client
 npm install
 ```
 
-Create a `.env` file in the `client` folder (see [client/.env.example](client/.env.example)) and set:
+Create a `.env` file in the `client` folder and set:
 
 ```
 VITE_API_URL=http://localhost:3000
@@ -179,25 +179,6 @@ npm run dev
 4. **Password reset**
    - Users who forget their password can request a reset link.
    - Using the emailed token, they can set a strong new password that passes the strength rules.
-
----
-
-## Notes on Deployment
-
-This repo has been simplified for local development. Deployment-related example values and platform-specific guides were removed. If you plan to deploy later, add the appropriate environment variables (see `server/.env.example` and `client/.env.example`) and update CORS origins in [server/src/app.js](server/src/app.js#L1-L100).
-
----
-
-## 🧪 Development Notes
-
-- Backend logs include detailed messages for authentication, RSVP, and event update flows to make debugging easier.
-- Error responses follow a simple JSON structure:
-
-```
-{ "message": "Human readable error message" }
-```
-
-- The frontend shows validation and server errors inline on the page instead of blocking alerts.
 
 ---
 
