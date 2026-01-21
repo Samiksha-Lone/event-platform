@@ -45,18 +45,15 @@ export function passwordStrength(password = '') {
 
   let score = 0;
 
-  // base length rule
-  if (password.length >= 8) score += 1;
+    if (password.length >= 8) score += 1;
 
-  // extra rules
-  if (/[A-Z]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
   if (/[0-9]/.test(password)) score += 1;
 
-  // SPECIAL CHARACTERS – REQUIRED FOR MAX SCORE
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
-  if (hasSpecial) score += 2; // give them highest weight
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  if (hasSpecial) score += 2; 
 
-  const maxScore = 5; // 1 + 1 + 1 + 2
+    const maxScore = 5;
   const labels = ['Very weak', 'Weak', 'Medium', 'Strong', 'Very strong', 'Very strong'];
   const colors = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-green-600', 'bg-green-600'];
 

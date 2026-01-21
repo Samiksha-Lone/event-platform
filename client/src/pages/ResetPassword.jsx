@@ -14,7 +14,6 @@ export default function ResetPassword() {
   const strength = passwordStrength(password);
 
   const handleSubmit = async (e) => {
-    
     e.preventDefault();
     setMsg('');
     setError('');
@@ -34,7 +33,6 @@ export default function ResetPassword() {
     setTimeout(() => navigate('/user/login'), 1500);
       
     } catch (err) {
-        console.error('reset error:', err.response?.data);
         setError(err.response?.data?.message || 'Reset failed');
     }
   };
@@ -56,7 +54,6 @@ export default function ResetPassword() {
           required
         />
 
-        {/* Strength bar */}
         <div className="mt-2">
           <div className="w-full h-2 overflow-hidden rounded-full bg-neutral-200">
             <div

@@ -5,8 +5,14 @@ import EventCard from '../components/EventCard';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import Input from '../components/Input';
+import { EventCardSkeleton } from '../components/Skeleton';
 import { useAppContext } from '../context/AppProvider';
 import { FiSearch } from 'react-icons/fi';
+import { LayoutGrid, Calendar } from 'lucide-react';
+import CalendarView from '../components/CalendarView';
+import { useToast } from '../context/ToastContext';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useRef } from 'react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -14,9 +20,17 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterDate, setFilterDate] = useState('');
-  const [rsvpError, setRsvpError] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
+  const [rsvpLoading, setRsvpLoading] = useState({});
 
-  const { events, user, rsvp, cancelRsvp, logout, fetchEvents } = useAppContext();
+  const { events, user, rsvp, cancelRsvp, logout, fetchEvents, loading: globalLoading } = useAppContext();
+  const { addToast } = useToast();
+
+  const searchInputRef = useRef(null);
+
+  useKeyboardShortcuts(() => {
+    searchInputRef.current?.focus();
+  });
 
   const filteredEvents = useCallback(() => {
     return events.filter((event) => {
@@ -47,11 +61,14 @@ export default function Dashboard() {
   };
 
   const handleToggleRsvp = async (eventId, isJoined) => {
-    setRsvpError('');
+    setRsvpLoading(prev => ({ ...prev, [eventId]: true }));
     const result = isJoined ? await cancelRsvp(eventId) : await rsvp(eventId);
-    if (!result.success) {
-      setRsvpError(`${isJoined ? 'Leave' : 'RSVP'} failed: ${result.error}`);
+    if (result.success) {
+      addToast(isJoined ? 'Successfully left event' : 'Spot reserved successfully!', 'success');
+    } else {
+      addToast(result.error || 'Action failed', 'error');
     }
+    setRsvpLoading(prev => ({ ...prev, [eventId]: false }));
   };
 
   const handleNavigate = (path) => {
@@ -83,36 +100,59 @@ export default function Dashboard() {
 
       <div className="container-padding">
         <div className="py-16 site-container">
-          {/* Header */}
           <div className="flex flex-col items-start justify-between gap-6 mb-16 sm:flex-row sm:items-center">
             <div className="flex-1">
-              <h1 className="mb-3 text-4xl font-black transition-colors duration-500 text-neutral-900 dark:text-white">
+              <h1 className="mb-2 text-2xl font-black transition-colors duration-500 text-neutral-900 dark:text-white">
                 Discover Events
               </h1>
-              <p className="text-base transition-colors duration-500 text-neutral-600 dark:text-gray-400">
+              <p className="text-sm transition-colors duration-500 text-neutral-600 dark:text-gray-400">
                 Find and join events in your area
               </p>
             </div>
-            <Button
-              onClick={() => navigate('/create-event')}
-              variant="primary"
-              size="lg"
-              className="px-8 py-4 text-lg font-bold whitespace-nowrap"
-            >
-              + Create Event
-            </Button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid'
+                      ? 'bg-white dark:bg-neutral-700 text-indigo-600 shadow-sm'
+                      : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid size={18} />
+                </button>
+                <button
+                  onClick={() => setViewMode('calendar')}
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'calendar'
+                      ? 'bg-white dark:bg-neutral-700 text-indigo-600 shadow-sm'
+                      : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                  title="Calendar View"
+                >
+                  <Calendar size={18} />
+                </button>
+              </div>
+              <Button
+                onClick={() => navigate('/create-event')}
+                variant="primary"
+                size="md"
+                className="px-6 py-2.5 text-base font-bold whitespace-nowrap"
+              >
+                + Create Event
+              </Button>
+            </div>
           </div>
 
-          {/* Search + Filters */}
           <div className="mb-10">
             <div className="mb-3">
               <Input
+                ref={searchInputRef}
                 placeholder="Search events..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                icon={<FiSearch size={22} />}
+                icon={<FiSearch size={20} />}
                 showLabel={false}
-                className="text-base h-14"
+                className="text-sm h-11"
               />
               <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
                 Showing {filteredEventsList.length} of {totalEvents} events
@@ -159,53 +199,66 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Events Grid */}
-          {filteredEventsList.length > 0 ? (
+          {globalLoading ? (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {filteredEventsList.map((event) => {
-                const eventId = event._id || event.id;
-                const rsvps = event.rsvps || [];
-                const isJoined = rsvps.some(
-                  (id) => id === user?.id || id?._id === user?.id
-                );
-                const isFull = rsvps.length >= event.capacity;
-                
-                return (
-                  <EventCard
-                    key={eventId}
-                    event={event}
-                    isJoined={isJoined}
-                    isFull={isFull}
-                    onViewDetails={() => handleViewDetails(eventId)}
-                    onRsvp={() => handleToggleRsvp(eventId, isJoined)} 
-                  />
-                );
-              })}
+              {[...Array(6)].map((_, i) => (
+                <EventCardSkeleton key={i} />
+              ))}
             </div>
+          ) : filteredEventsList.length > 0 ? (
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {filteredEventsList.map((event, index) => {
+                  const eventId = event._id || event.id;
+                  const rsvps = event.rsvps || [];
+                  const isJoined = rsvps.some(
+                    (id) => id === user?.id || id?._id === user?.id
+                  );
+                  const isFull = rsvps.length >= event.capacity;
+
+                  return (
+                    <div
+                      key={eventId}
+                      className="opacity-0 animate-slide-up-fade"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <EventCard
+                        event={event}
+                        isJoined={isJoined}
+                        isFull={isFull}
+                        onViewDetails={() => handleViewDetails(eventId)}
+                        onRsvp={() => handleToggleRsvp(eventId, isJoined)}
+                        loading={rsvpLoading[eventId]}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <CalendarView events={filteredEventsList} />
+            )
           ) : (
-            <div className="py-20 text-center">
-              <svg
-                className="w-24 h-24 mx-auto mb-6 text-neutral-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-6l-2 2m0 0l-2-2m2 2v7"
-                />
-              </svg>
-              <h3 className="mb-2 text-2xl font-bold text-neutral-900 dark:text-white">
+            <div className="py-24 text-center border glass-surface rounded-3xl border-neutral-100 dark:border-neutral-800 animate-fade-in">
+              <div className="relative inline-block mb-6">
+                <div className="absolute inset-0 rounded-full bg-indigo-500/10 blur-3xl" />
+                <div className="relative p-6 bg-white border rounded-full dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 shadow-premium">
+                  <FiSearch className="w-12 h-12 text-neutral-300 dark:text-neutral-600" />
+                </div>
+              </div>
+              <h3 className="mb-3 text-2xl font-black text-neutral-900 dark:text-white">
                 No events found
               </h3>
-              <p className="mb-6 text-neutral-600 dark:text-neutral-400">
-                Try adjusting your search or filter criteria
+              <p className="max-w-md mx-auto mb-10 text-neutral-600 dark:text-neutral-400">
+                We couldn't find any events matching your current filters. Try adjusting your search term or category.
               </p>
-              <Button onClick={clearFilters} variant="primary">
-                Clear All Filters
-              </Button>
+              <div className="flex items-center justify-center gap-4">
+                <Button onClick={clearFilters} variant="secondary">
+                  Clear All Filters
+                </Button>
+                <Button onClick={() => navigate('/create-event')} variant="primary">
+                  Create First Event
+                </Button>
+              </div>
             </div>
           )}
 

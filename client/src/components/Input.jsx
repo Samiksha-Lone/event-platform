@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 
-export default function Input({
+const Input = forwardRef(({
   label,
   type = 'text',
   placeholder = '',
@@ -11,8 +11,9 @@ export default function Input({
   icon = null,
   className = '',
   showLabel = true,
+  required = false,
   ...props
-}) {
+}, ref) => {
   const [showPassword, setShowPassword] = useState(false);
   const isTextarea = type === 'textarea';
   const Component = isTextarea ? 'textarea' : 'input';
@@ -23,8 +24,8 @@ export default function Input({
     <div className="w-full">
       
       {showLabel && label && (
-        <label className="block mb-3 text-base font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
-          {label}
+        <label className="block mb-1.5 text-xs font-bold text-neutral-700 dark:text-gray-300 uppercase tracking-widest transition-all duration-300">
+          {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
@@ -35,11 +36,18 @@ export default function Input({
           </div>
         )}
         <Component
+          ref={ref}
           type={type === 'textarea' ? undefined : displayType}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`w-full px-5 py-4 text-lg bg-white dark:bg-white/10 border-2 border-neutral-300 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${icon ? 'pl-14' : ''} ${isPasswordType ? 'pr-14' : ''} ${error ? 'border-red-500 dark:border-red-600/50 focus:ring-red-500' : ''} ${className}`}
+          className={`w-full px-4 py-2 text-sm border-2 rounded-xl transition-all duration-300 outline-none
+            ${error 
+              ? 'border-red-500 focus:ring-red-500/20' 
+              : 'border-neutral-200 dark:border-neutral-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10'
+            }
+            bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400
+            ${icon ? 'pl-11' : ''} ${isPasswordType ? 'pr-12' : ''} ${className}`}
           {...props}
         />
         {isPasswordType && (
@@ -48,11 +56,13 @@ export default function Input({
             onClick={() => setShowPassword(!showPassword)}
             className="absolute p-2 transition-colors transform -translate-y-1/2 right-4 top-1/2 text-neutral-500 dark:text-gray-400 hover:text-neutral-700 dark:hover:text-gray-200"
           >
-            {showPassword ? <FiEye size={24} /> : <FiEyeOff size={24} />}
+            {showPassword ? <FiEye size={20} /> : <FiEyeOff size={20} />}
           </button>
         )}
       </div>
-      {error && <p className="mt-2 text-base font-bold text-red-700 transition-colors duration-500 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-1.5 text-sm font-bold text-red-700 transition-colors duration-500 dark:text-red-400">{error}</p>}
     </div>
   );
-}
+});
+
+export default Input;

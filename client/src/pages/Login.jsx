@@ -10,7 +10,7 @@ import { api } from '../utils/api';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAppContext(); // Get user for Navbar
+  const { login } = useAppContext();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,11 +47,9 @@ export default function Login() {
       try {
         const response = await api.post('/auth/login', formData);
 
-        // Check if login was successful (status 200-299)
         if (response.status === 200) {
           const userData = response.data.user || response.data;
 
-          // Extract user data properly
           const userToSave = {
             id: userData.id || userData._id,
             name: userData.name || userData.email?.split('@')[0],
@@ -59,7 +57,6 @@ export default function Login() {
             ...userData
           };
 
-          // NEW: save token for backend requests
           if (response.data.token) {
             localStorage.setItem('authToken', response.data.token);
           }
@@ -74,14 +71,9 @@ export default function Login() {
           setSuccess('');
         }
       } catch (error) {
-        console.error('Login Error:', error);
-        console.error('Status:', error.response?.status);
-        console.error('Error data:', error.response?.data);
-        console.error('Request data:', formData);
 
         let errorMsg = error.response?.data?.message || error.message || 'Login failed';
 
-        // User-friendly error messages
         if (error.response?.status === 401 || error.response?.status === 400) {
           errorMsg = 'Invalid credentials. Please check your email and password.';
         } else if (error.response?.status === 500) {
@@ -101,21 +93,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen overflow-hidden transition-colors duration-500 bg-white dark:bg-neutral-950">
-      {/* Main Content */}
       <main className="flex items-center justify-center min-h-screen px-4 py-12 overflow-y-auto sm:px-6 lg:px-8">
         <div className="w-full max-w-lg">
           <div className="p-6 transition-colors duration-500 bg-white border shadow-2xl sm:p-8 dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
-            {/* Logo & Title */}
             <div className="mb-4 text-center">
-              <h1 className="mb-2 text-4xl font-black text-transparent bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 dark:from-indigo-500 dark:to-indigo-400 bg-clip-text drop-shadow-lg">
+              <h1 className="mb-2 text-3xl font-black text-transparent bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 dark:from-indigo-500 dark:to-indigo-400 bg-clip-text drop-shadow-lg">
                 EventHub
               </h1>
-              <p className="text-base font-medium text-neutral-600 dark:text-gray-400">
+              <p className="text-sm font-medium text-neutral-600 dark:text-gray-400">
                 Sign in to your account
               </p>
             </div>
 
-            {/* Success Alert */}
             {success && (
               <div className="p-3 mb-4 text-sm text-green-700 transition-colors duration-500 border border-green-300 shadow-md dark:text-green-400 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl">
                 <div className="flex items-start gap-3">
@@ -127,7 +116,6 @@ export default function Login() {
               </div>
             )}
 
-            {/* Error Alert */}
             {errors.submit && (
               <div className="p-3 mb-4 text-sm text-red-700 transition-colors duration-500 border border-red-300 shadow-md dark:text-red-400 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl">
                 <div className="flex items-start gap-3">
@@ -139,7 +127,6 @@ export default function Login() {
               </div>
             )}
 
-            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 id="email"
@@ -173,7 +160,6 @@ export default function Login() {
                 required
               />
 
-              {/* flex row for right alignment */}
               <div className="flex">
                 <p
                   className="mt-1 ml-auto text-sm text-indigo-600 cursor-pointer"
@@ -205,14 +191,13 @@ export default function Login() {
             </form>
 
 
-            {/* Register Link */}
             <div className="pt-8 mt-10 text-center transition-colors duration-500 border-t border-neutral-200 dark:border-neutral-700">
-              <p className="text-lg text-neutral-600 dark:text-gray-400">
+              <p className="text-base text-neutral-600 dark:text-gray-400">
                 Don't have an account?{' '}
                 <button
                   type="button"
                   onClick={() => navigate('/user/register')}
-                  className="text-lg font-bold text-indigo-600 transition-colors duration-200 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline-offset-4 hover:underline"
+                  className="text-base font-bold text-indigo-600 transition-colors duration-200 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline-offset-4 hover:underline"
                 >
                   Create Account
                 </button>

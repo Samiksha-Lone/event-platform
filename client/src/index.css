@@ -11,13 +11,13 @@
     -moz-text-size-adjust: 100%;
     text-size-adjust: 100%;
     tab-size: 4;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
-      "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: #ffffff;   /* light bg */
     color: #111827;              /* light text */
-    font-size: 16px;
+    font-size: 15px;
   }
 
   body {
@@ -27,7 +27,7 @@
     padding: 0;
     background-color: #ffffff;
     color: #111827;
-    font-size: 16px;
+    font-size: 15px;
     overflow-x: hidden;
   }
 
@@ -72,7 +72,7 @@
   }
 
   .card-surface {
-    @apply p-8 bg-white border text-neutral-900 border-neutral-200 rounded-2xl hover:shadow-lg;
+    @apply p-6 bg-white border text-neutral-900 border-neutral-200 rounded-xl hover:shadow-lg;
   }
   .dark .card-surface {
     @apply bg-neutral-900 text-neutral-50 border-neutral-800;
@@ -93,21 +93,21 @@
   }
 
   .btn-ghost {
-    @apply p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700;
+    @apply p-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700;
   }
   .dark .btn-ghost {
     @apply bg-neutral-800 hover:bg-neutral-700 text-neutral-300;
   }
 
   .input-field {
-    @apply w-full px-5 py-4 text-lg bg-white border-2 border-neutral-200 rounded-xl text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500;
+    @apply w-full px-4 py-2.5 text-base bg-white border-2 border-neutral-200 rounded-lg text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500;
   }
   .dark .input-field {
     @apply bg-neutral-800 border-neutral-700 text-neutral-50 placeholder-neutral-400;
   }
 
   .event-image-wrap {
-    @apply flex items-center justify-center flex-shrink-0 w-full h-56 mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-indigo-200 to-indigo-100;
+    @apply flex items-center justify-center flex-shrink-0 w-full h-48 mb-4 overflow-hidden rounded-lg bg-gradient-to-br from-indigo-200 to-indigo-100;
   }
   .dark .event-image-wrap {
     @apply bg-gradient-to-br from-indigo-900 to-indigo-800;
@@ -121,7 +121,7 @@
   }
 
   .event-title {
-    @apply mb-4 text-xl font-bold text-neutral-900;
+    @apply mb-3 text-lg font-bold text-neutral-900;
   }
   .dark .event-title {
     @apply text-neutral-50;
@@ -149,7 +149,7 @@
   }
 
   .theme-test {
-    @apply p-8 mx-4 mt-10 text-black bg-white rounded-2xl;
+    @apply p-6 mx-4 mt-8 text-black bg-white rounded-xl;
   }
   .dark .theme-test {
     @apply text-yellow-300 bg-red-600;
@@ -157,21 +157,21 @@
 
   /* Alerts and form helpers */
   .alert-success {
-    @apply p-6 mb-4 text-green-800 border border-green-200 shadow-sm rounded-xl bg-green-50;
+    @apply p-4 mb-3 text-green-800 border border-green-200 shadow-sm rounded-lg bg-green-50;
   }
   .dark .alert-success {
     @apply text-green-200 border-green-600 bg-green-500/10;
   }
 
   .alert-error {
-    @apply p-6 mb-4 text-red-800 border border-red-200 shadow-sm rounded-xl bg-red-50;
+    @apply p-4 mb-3 text-red-800 border border-red-200 shadow-sm rounded-lg bg-red-50;
   }
   .dark .alert-error {
     @apply text-red-200 border-red-600 bg-red-500/10;
   }
 
   .label-text {
-    @apply block mb-2 text-sm font-semibold text-gray-700;
+    @apply block mb-1.5 text-xs font-semibold text-gray-700;
   }
   .dark .label-text {
     @apply text-gray-200;
@@ -208,7 +208,8 @@
   }
 
   .page-heading {
-    @apply mb-2 text-3xl font-extrabold sm:text-4xl text-neutral-900;
+    @apply mb-2 text-2xl font-black sm:text-3xl text-neutral-900 tracking-tight;
+    font-family: 'Outfit', sans-serif;
   }
   .dark .page-heading {
     @apply text-neutral-50;
@@ -222,7 +223,7 @@
   }
 
   .page-section-title {
-    @apply text-xl font-bold text-neutral-900;
+    @apply text-lg font-bold text-neutral-900;
   }
   .dark .page-section-title {
     @apply text-neutral-50;
@@ -230,7 +231,7 @@
 
   /* stat-card */
   .stat-card {
-    @apply p-5 bg-white border text-neutral-900 border-neutral-200 rounded-2xl hover:shadow-lg;
+    @apply p-4 bg-white border text-neutral-900 border-neutral-200 rounded-xl hover:shadow-lg;
   }
   .dark .stat-card {
     @apply bg-neutral-900 text-neutral-50 border-neutral-800;
@@ -244,7 +245,7 @@
   }
 
   .stat-value {
-    @apply mt-2 text-2xl font-bold;
+    @apply mt-1 text-xl font-bold;
   }
 
   .tab-border {
@@ -273,6 +274,38 @@
   }
 
   .primary-button {
-    @apply px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700;
+    @apply px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-indigo-600/10;
+  }
+
+  .shadow-premium {
+    @apply shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)];
+  }
+
+  .glass-surface {
+    @apply bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
+  }
+
+  @keyframes slide-up-fade {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up-fade {
+    animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }

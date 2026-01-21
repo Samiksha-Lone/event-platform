@@ -116,7 +116,6 @@ function reducer(state, action) {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // 1) Restore user from localStorage on first load
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('user');
@@ -125,7 +124,6 @@ export function AppProvider({ children }) {
         dispatch({ type: 'LOGIN', payload: parsed });
       }
     } catch (e) {
-      console.error('Error restoring user from storage:', e);
     }
   }, []);
 
@@ -141,22 +139,18 @@ export function AppProvider({ children }) {
 
       dispatch({ type: 'SET_EVENTS', payload: rawEvents });
     } catch (err) {
-      console.error('Error fetching events:', err);
     }
   }, []);
 
-  // Fetch events on mount
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Persist events to localStorage
   useEffect(() => {
     try {
       const normalized = normalizeEvents(state.events);
       localStorage.setItem('events', JSON.stringify(normalized));
     } catch (e) {
-      console.error('Error saving events:', e);
     }
   }, [state.events]);
 
@@ -167,7 +161,6 @@ export function AppProvider({ children }) {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
     } catch (err) {
-      console.error('Error deleting event from backend:', err);
     }
     dispatch({ type: 'DELETE_EVENT', payload: id });
   };
@@ -185,7 +178,6 @@ export function AppProvider({ children }) {
       dispatch({ type: 'RSVP', payload: { eventId, userId: state.user?.id } });
       return { success: true };
     } catch (err) {
-      console.error('Error RSVPing:', err);
       return { success: false, error: 'Network error' };
     }
   };
@@ -206,7 +198,6 @@ export function AppProvider({ children }) {
       });
       return { success: true };
     } catch (err) {
-      console.error('Error canceling RSVP:', err);
       return { success: false, error: 'Network error' };
     }
   };
@@ -215,7 +206,6 @@ export function AppProvider({ children }) {
     user: state.user,
     events: state.events,
 
-    // When login is called after /login API, also persist user
     login: (user) => {
       dispatch({ type: 'LOGIN', payload: user });
       localStorage.setItem('user', JSON.stringify(user));
@@ -238,7 +228,6 @@ export function AppProvider({ children }) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useAppContext() {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useAppContext must be used within AppProvider');

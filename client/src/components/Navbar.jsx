@@ -16,13 +16,14 @@ export default function Navbar({
   const handleToggle = toggleTheme || contextToggleTheme;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 dark:bg-neutral-900/95 border-b border-neutral-200 dark:border-neutral-800 transition-colors duration-300 supports-[backdrop-filter:blur()]:backdrop-blur-sm">
+    <nav className="sticky top-0 z-50 glass-surface transition-all duration-300">
       <div className="container-padding">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-14">
           <div className="flex-1">
             <button
               onClick={() => onNavigate('dashboard')}
-              className="pl-5 text-3xl font-bold text-indigo-600 transition-all duration-200 dark:text-indigo-400 hover:opacity-80 active:scale-95"
+              className="pl-5 text-2xl font-black text-indigo-600 transition-all duration-200 dark:text-indigo-400 hover:opacity-80 active:scale-95 tracking-tight"
+              style={{ fontFamily: 'Outfit, sans-serif' }}
               aria-label="Go to dashboard"
             >
               EventHub
@@ -30,27 +31,24 @@ export default function Navbar({
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Theme Toggle */}
             {showThemeToggle && (
               <button
                 onClick={handleToggle}
                 className="p-2.5 transition-colors duration-200 rounded-full text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 aria-label="Toggle theme"
               >
-                {activeTheme === 'dark' ? <FiSun size={22} /> : <FiMoon size={22} />}
+                {activeTheme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
               </button>
             )}
 
-            {/* Profile Icon */}
             <button
               onClick={() => onNavigate('user-dashboard')}
-              className="p-3 transition-colors duration-200 rounded-full text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="p-2 transition-colors duration-200 rounded-full text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
               aria-label="Go to profile"
             >
-              <FiUser size={22} />
+              <FiUser size={20} />
             </button>
 
-            {/* Red Logout Icon - only when requested (UserDashboard) */}
             {user && showIconLogout && onLogout && (
               <button
                 type="button"

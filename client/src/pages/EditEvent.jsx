@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
-import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAppContext } from '../context/AppProvider';
 import Navbar from '../components/Navbar';
+import AiDescriptionModal from '../components/AiDescriptionModal';
+import AiPosterModal from '../components/AiPosterModal';
+import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon, Sparkles, Palette } from 'lucide-react';
+import { useAppContext } from '../context/AppProvider';
+import { useToast } from '../context/ToastContext';
 
 export default function EditEvent() {
   const navigate = useNavigate();
-  const { id } = useParams(); // /edit-event/:id
+  const { id } = useParams();
   const { user, editEvent } = useAppContext();
+  const { addToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [imageMode, setImageMode] = useState('keep'); // keep | file | url
+  const [imageMode, setImageMode] = useState('keep');
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isPosterModalOpen, setIsPosterModalOpen] = useState(false);
+  const [isDetectingCategory, setIsDetectingCategory] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -29,7 +34,6 @@ export default function EditEvent() {
     existingImage: '',
   });
 
-  // Load event data
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -49,8 +53,7 @@ export default function EditEvent() {
           existingImage: ev.image || '',
         });
       } catch (err) {
-        console.error('Error loading event:', err);
-        setError('Failed to load event details.');
+        addToast('Failed to load event details.', 'error');
       } finally {
         setLoading(false);
       }
@@ -61,22 +64,58 @@ export default function EditEvent() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    setError('');
   };
 
   const handleImageFileChange = (e) => {
     setForm((prev) => ({ ...prev, imageFile: e.target.files[0] }));
-    setError('');
     setImageMode('file');
+  };
+
+  const detectCategory = () => {
+    setIsDetectingCategory(true);
+    setTimeout(() => {
+      const text = (form.title + " " + form.description).toLowerCase();
+      let suggested = "other";
+      if (text.match(/code|tech|software|dev|ai|data|web|app|react|python|js/)) suggested = "tech";
+      else if (text.match(/music|concert|band|dj|song|dance/)) suggested = "music";
+      else if (text.match(/sports|football|soccer|gym|fitness|match/)) suggested = "sports";
+      else if (text.match(/food|eat|cook|chef|dinner|restaurant/)) suggested = "food";
+      
+      setForm(prev => ({ ...prev, category: suggested }));
+      setIsDetectingCategory(false);
+      addToast(`Suggested category: ${suggested.toUpperCase()}`, "info");
+    }, 1200);
+  };
+
+  const calculateViralScore = () => {
+    let score = 0;
+    if (form.title.length > 15) score += 20;
+    if (form.description.length > 150) score += 30;
+    if (form.imageUrl || form.imageFile || form.existingImage) score += 30;
+    if (form.capacity > 50) score += 10;
+    if (form.location.length > 10) score += 10;
+    return score;
+  };
+
+  const viralScore = calculateViralScore();
+
+  const getTimeSuggestion = () => {
+    const suggestions = {
+      tech: "Mid-morning (10:00 AM) is best for focus.",
+      music: "Evening (7:00 PM) creates the best vibe.",
+      sports: "Weekend mornings (9:00 AM) are peak energy.",
+      food: "Lunchtime (12:30 PM) or Dinner (7:30 PM) is ideal.",
+      other: "Afternoons (2:00 PM) usually work for most."
+    };
+    return suggestions[form.category] || suggestions.other;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setSaving(true);
 
     if (!form.title || !form.description || !form.capacity || !form.date || !form.time || !form.location) {
-      setError('Please fill all required fields.');
+      addToast('Please fill all required fields.', 'error');
       setSaving(false);
       return;
     }
@@ -84,7 +123,6 @@ export default function EditEvent() {
     try {
       let res;
 
-      // If user chose new file → multipart/form-data
       if (imageMode === 'file' && form.imageFile) {
         const formdata = new FormData();
         formdata.append('title', form.title);
@@ -100,7 +138,6 @@ export default function EditEvent() {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-      // If user chose URL → JSON
       else if (imageMode === 'url' && form.imageUrl) {
         res = await api.put(
           `/event/${id}`,
@@ -117,7 +154,6 @@ export default function EditEvent() {
           { withCredentials: true }
         );
       }
-      // Keep existing image
       else {
         res = await api.put(
           `/event/${id}`,
@@ -136,11 +172,10 @@ export default function EditEvent() {
 
       const updated = res.data.event;
       editEvent(updated);
-      setSuccess('Event updated successfully! Redirecting...');
+      addToast(res.data?.message || 'Event updated successfully!', 'success');
       setTimeout(() => navigate('/user-dashboard'), 1500);
     } catch (err) {
-      console.error('Update error:', err);
-      setError(err.response?.data?.message || 'Failed to update event');
+      addToast(err.response?.data?.message || 'Failed to update event', 'error');
     } finally {
       setSaving(false);
     }
@@ -176,32 +211,39 @@ export default function EditEvent() {
       <div className="container-padding">
         <div className="site-container">
           <main className="main-content">
-            {success && (
-              <div className="p-4 mb-4 text-green-700 border border-green-300 shadow-md bg-green-50 dark:bg-green-500/10 dark:text-green-400 dark:border-green-600/50 rounded-2xl">
-                <p className="text-lg font-semibold">{success}</p>
-              </div>
-            )}
 
-            {error && (
-              <div className="p-4 mb-4 text-red-700 border border-red-300 shadow-md bg-red-50 dark:bg-red-500/10 dark:text-red-400 dark:border-red-600/50 rounded-2xl">
-                <p className="text-lg font-semibold">{error}</p>
-              </div>
-            )}
-
-            <div className="p-8 bg-white border shadow-xl dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
-              <div className="mb-8">
-                <h1 className="mb-2 text-3xl font-bold text-neutral-900 dark:text-white">
-                  Edit Event
-                </h1>
-                <p className="text-neutral-600 dark:text-neutral-400">
-                  Update the details of your event
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Title */}
+            <div className="p-6 bg-white border shadow-xl dark:bg-neutral-900 rounded-xl border-neutral-200 dark:border-neutral-800">
+              <div className="flex flex-col items-start justify-between gap-4 mb-8 md:flex-row md:items-center">
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
+                  <h1 className="mb-2 text-2xl font-bold text-neutral-900 dark:text-white">
+                    Edit Event
+                  </h1>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Update the details of your event
+                  </p>
+                </div>
+
+                <div className="p-3 border rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border-neutral-100 dark:border-neutral-800/50 min-w-[200px]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-tighter text-neutral-500 dark:text-neutral-400">
+                      Viral Potential
+                    </span>
+                    <span className={`text-xs font-bold ${viralScore > 70 ? 'text-green-500' : viralScore > 40 ? 'text-orange-500' : 'text-neutral-400'}`}>
+                      {viralScore}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-1000 ease-out rounded-full ${viralScore > 70 ? 'bg-green-500' : viralScore > 40 ? 'bg-orange-500' : 'bg-neutral-400'}`}
+                      style={{ width: `${viralScore}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
                     Event Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -209,35 +251,58 @@ export default function EditEvent() {
                     name="title"
                     value={form.title}
                     onChange={handleChange}
-                    className="w-full px-5 py-4 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg-white/10 dark:border-neutral-600 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 text-base bg-white border-2 border-neutral-300 rounded-lg dark:bg-white/10 dark:border-neutral-600 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
-                {/* Description */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
-                    Description <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-bold text-neutral-700 dark:text-gray-300">
+                      Description <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsAiModalOpen(true)}
+                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-indigo-600 transition-all border border-indigo-200 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                    >
+                      <Sparkles size={12} />
+                      ✨ Generate with AI
+                    </button>
+                  </div>
                   <textarea
                     name="description"
                     value={form.description}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full px-5 py-4 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 text-base bg-white border-2 border-neutral-300 rounded-lg dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
-                {/* Category & Capacity */}
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
+                   <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-bold text-neutral-700 dark:text-gray-300">
                       Category
                     </label>
+                    <button
+                      type="button"
+                      onClick={detectCategory}
+                      disabled={isDetectingCategory}
+                      className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 transition-all border border-indigo-200 rounded-full bg-white hover:bg-indigo-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-indigo-400"
+                    >
+                      {isDetectingCategory ? (
+                        <div className="w-2.5 h-2.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Sparkles size={10} />
+                      )}
+                      AI Suggest
+                    </button>
+                  </div>
                     <select
                       name="category"
                       value={form.category}
                       onChange={handleChange}
-                      className="w-full px-5 py-4 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 text-base bg-white border-2 border-neutral-300 rounded-lg dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="tech">Tech</option>
                       <option value="music">Music</option>
@@ -248,7 +313,7 @@ export default function EditEvent() {
                   </div>
 
                   <div>
-                    <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
+                    <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
                       Capacity <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -268,10 +333,9 @@ export default function EditEvent() {
                   </div>
                 </div>
 
-                {/* Date & Time */}
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
+                    <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
                       Date <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -290,9 +354,14 @@ export default function EditEvent() {
                   </div>
 
                   <div>
-                    <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
-                      Time <span className="text-red-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-bold text-neutral-700 dark:text-gray-300">
+                        Time <span className="text-red-500">*</span>
+                      </label>
+                      <span className="text-[10px] font-medium text-indigo-500 dark:text-indigo-400 animate-pulse">
+                        💡 {getTimeSuggestion()}
+                      </span>
+                    </div>
                     <input
                       type="time"
                       name="time"
@@ -303,9 +372,8 @@ export default function EditEvent() {
                   </div>
                 </div>
 
-                {/* Location */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
+                  <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
                     Location <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -323,9 +391,8 @@ export default function EditEvent() {
                   </div>
                 </div>
 
-                {/* Image section */}
                 <div>
-                  <label className="block mb-3 text-base font-bold text-neutral-700 dark:text-gray-300">
+                  <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
                     Event Image
                   </label>
 
@@ -376,7 +443,18 @@ export default function EditEvent() {
                       }`}
                     >
                       <LinkIcon size={16} />
-                      Use new URL
+                      Use URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageMode('url');
+                        setIsPosterModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-lg border border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                    >
+                      <Palette size={16} />
+                      ✨ AI Poster
                     </button>
                   </div>
 
@@ -414,12 +492,11 @@ export default function EditEvent() {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-col gap-4 pt-8 sm:flex-row">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="flex items-center justify-center flex-1 gap-3 px-8 py-4 text-xl font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:bg-indigo-400"
+                    className="flex items-center justify-center flex-1 gap-3 px-6 py-2.5 text-base font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400"
                   >
                     {saving ? (
                       <>
@@ -437,7 +514,7 @@ export default function EditEvent() {
                   <button
                     type="button"
                     onClick={() => navigate('/user-dashboard')}
-                    className="flex-1 px-6 py-4 text-lg font-bold border-2 rounded-xl border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                    className="flex-1 px-5 py-2.5 text-base font-bold border-2 rounded-lg border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700"
                   >
                     Cancel
                   </button>
@@ -447,6 +524,22 @@ export default function EditEvent() {
           </main>
         </div>
       </div>
+
+      <AiDescriptionModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onApply={(text) => {
+          setForm(prev => ({ ...prev, description: text }));
+        }}
+      />
+      <AiPosterModal
+        isOpen={isPosterModalOpen}
+        onClose={() => setIsPosterModalOpen(false)}
+        onApply={(url) => {
+          setForm(prev => ({ ...prev, imageUrl: url }));
+          setImageMode('url');
+        }}
+      />
     </div>
   );
 }

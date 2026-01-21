@@ -9,6 +9,7 @@ import UserDashboard from '../pages/UserDashboard';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import EditEvent from '../pages/EditEvent'
+import NotFound from '../pages/NotFound';
 
 const AppRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const AppRoutes = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/edit-event/:id" element={<EditEvent />} />
+            <Route path="*" element={<NotFound />} />
         </Routes>
     </Router>
   )

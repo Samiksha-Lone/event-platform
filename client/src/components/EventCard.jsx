@@ -10,6 +10,7 @@ export default function EventCard({
   onDelete,
   isJoined = false,
   isFull = false,
+  loading = false,
 }) {
   const id = event._id || event.id;
   const title = event.title || event.name || 'Untitled Event';
@@ -20,22 +21,21 @@ export default function EventCard({
   const attending = event.attending ?? (event.rsvps ? event.rsvps.length : 0);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden transition-all duration-200 bg-white border rounded-2xl dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 hover:shadow-2xl hover:border-indigo-500/50 dark:hover:border-indigo-500/30">
-      {/* Image */}
-      <div className="relative flex items-center justify-center flex-shrink-0 w-full h-64 overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-700">
+    <div className="group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.15)] shadow-sm">
+      <div className="relative h-48 overflow-hidden">
         {event.image ? (
           <img
             src={event.image}
-            alt={title}
-            className="object-cover w-full h-full"
+            alt={event.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={(e) => {
               e.target.style.opacity = '0';
             }}
           />
         ) : (
-          <div className="flex items-center justify-center w-full h-full">
+          <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-indigo-600 via-indigo-500 to-indigo-700">
             <svg
-              className="w-24 h-24 text-indigo-200 opacity-50"
+              className="w-16 h-16 text-indigo-200 opacity-50"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -45,13 +45,12 @@ export default function EventCard({
         )}
       </div>
 
-      {/* Content */}
       <div className="flex flex-col flex-1 p-6">
-        <h3 className="mb-5 text-2xl font-bold text-neutral-900 dark:text-white line-clamp-2">
+        <h3 className="mb-4 text-xl font-bold text-neutral-900 dark:text-white line-clamp-2">
           {title}
         </h3>
 
-        <div className="mb-6 space-y-3">
+        <div className="mb-4 space-y-2">
           {date && (
             <div className="flex items-center gap-3">
               <svg
@@ -67,7 +66,7 @@ export default function EventCard({
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-base text-neutral-600 dark:text-gray-300">
+              <p className="text-sm text-neutral-600 dark:text-gray-300">
                 {date}
               </p>
             </div>
@@ -75,7 +74,7 @@ export default function EventCard({
           {location && (
             <div className="flex items-center gap-3">
               <svg
-                className="flex-shrink-0 w-5 h-5 text-indigo-600 dark:text-indigo-400"
+                className="flex-shrink-0 w-4 h-4 text-indigo-600 dark:text-indigo-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -93,21 +92,20 @@ export default function EventCard({
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <p className="text-base text-neutral-600 dark:text-gray-300">
+              <p className="text-sm text-neutral-600 dark:text-gray-300">
                 {location}
               </p>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-4 mb-6 text-sm border-t border-neutral-200 dark:border-neutral-700">
+        <div className="flex items-center justify-between pt-3 mb-4 text-xs border-t border-neutral-200 dark:border-neutral-700">
           <span className="text-sm font-medium text-neutral-600 dark:text-gray-400">
             {attending} / {capacity} attending
           </span>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 mt-auto">
+        <div className="flex gap-2.5 mt-auto">
           {isOwnEvent ? (
             <>
               {onEdit && (
@@ -151,9 +149,13 @@ export default function EventCard({
                   variant={isJoined ? 'danger' : 'secondary'}
                   size="md"
                   className="flex-1 text-lg"
-                  disabled={isFull && !isJoined}
+                  disabled={isFull && !isJoined || loading}
                 >
-                  {isJoined ? 'Leave Event' : isFull ? 'Event Full' : 'RSVP'}
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    isJoined ? 'Leave Event' : isFull ? 'Event Full' : 'RSVP'
+                  )}
                 </Button>
               )}
             </>

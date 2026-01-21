@@ -4,11 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import EventCard from '../components/EventCard';
 import Navbar from '../components/Navbar';
 import { useAppContext } from '../context/AppProvider';
+import { useToast } from '../context/ToastContext';
+import { LayoutGrid, Calendar } from 'lucide-react';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
   const { user, events, logout, deleteEvent, cancelRsvp } = useAppContext();
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('created');
+  const [rsvpLoading, setRsvpLoading] = useState({});
 
   const currentUserId = user?.id || user?._id || null;
 
@@ -19,14 +23,12 @@ export default function UserDashboard() {
     return null;
   };
 
-  // Events created by current user
   const createdEvents =
     events.filter((e) => {
       const ownerId = getOwnerId(e);
       return ownerId && currentUserId && ownerId === currentUserId;
     }) || [];
 
-  // Events user is attending but not owning
   const attendingEvents =
     events.filter((e) => {
       const ownerId = getOwnerId(e);
@@ -47,10 +49,12 @@ export default function UserDashboard() {
   };
 
   const handleRsvp = async (eventId) => {
+    setRsvpLoading(prev => ({ ...prev, [eventId]: true }));
     const result = await cancelRsvp(eventId);
     if (!result?.success) {
-      alert(`Failed to leave event: ${result?.error || 'Unknown error'}`);
+      addToast(`Failed to leave event: ${result?.error || 'Unknown error'}`, 'error');
     }
+    setRsvpLoading(prev => ({ ...prev, [eventId]: false }));
   };
 
   const handleNavigate = (path) => {
@@ -75,8 +79,6 @@ export default function UserDashboard() {
     navigate('/user/login');
   };
 
-  console.log('currentUser', user);
-console.log('events in dashboard', events);
 
 
   return (
@@ -91,41 +93,38 @@ console.log('events in dashboard', events);
 
       <div className="py-16 container-padding">
         <div className="site-container">
-          {/* Header */}
           <div className="mb-12">
-            <h1 className="mb-3 text-4xl font-extrabold transition-colors duration-500 sm:text-4xl text-neutral-900 dark:text-neutral-50">
-              My Dashboard
+            <h1 className="mb-2 text-2xl font-extrabold transition-colors duration-500 sm:text-3xl text-neutral-900 dark:text-neutral-50">
+                My Dashboard
             </h1>
-            <p className="text-xl transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
+            <p className="text-sm transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
               Welcome, {user?.name}! Manage your events and registrations.
             </p>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-1 gap-6 mb-12 sm:grid-cols-2">
-            <div className="p-5 transition-all duration-200 bg-white border text-neutral-900 border-neutral-200 rounded-2xl hover:shadow-lg dark:bg-neutral-900 dark:text-neutral-50 dark:border-neutral-800">
-              <h3 className="text-xl transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
+            <div className="p-4 transition-all duration-200 bg-white border text-neutral-900 border-neutral-200 rounded-xl hover:shadow-lg dark:bg-neutral-900 dark:text-neutral-50 dark:border-neutral-800">
+              <h3 className="text-sm transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
                 Events Created
               </h3>
-              <p className="mt-2 text-2xl font-bold">
+              <p className="mt-1 text-xl font-bold">
                 {createdEvents.length}
               </p>
             </div>
-            <div className="p-5 transition-all duration-200 bg-white border text-neutral-900 border-neutral-200 rounded-2xl hover:shadow-lg dark:bg-neutral-900 dark:text-neutral-50 dark:border-neutral-800">
-              <h3 className="text-xl transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
+            <div className="p-4 transition-all duration-200 bg-white border text-neutral-900 border-neutral-200 rounded-xl hover:shadow-lg dark:bg-neutral-900 dark:text-neutral-50 dark:border-neutral-800">
+              <h3 className="text-sm transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
                 Events Attending
               </h3>
-              <p className="mt-2 text-2xl font-bold">
+              <p className="mt-1 text-xl font-bold">
                 {attendingEvents.length}
               </p>
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="flex items-center gap-3 mb-6 transition-colors duration-500 border-b border-neutral-200 dark:border-neutral-800">
             <button
               onClick={() => setActiveTab('created')}
-              className={`px-4 py-2 text-xl border-b-2 border-transparent rounded-t-lg transition-all duration-300 ${
+              className={`px-4 py-2 text-base border-b-2 border-transparent rounded-t-lg transition-all duration-300 ${
                 activeTab === 'created'
                   ? 'text-indigo-600 dark:text-indigo-500 border-indigo-600 dark:border-indigo-500'
                   : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
@@ -135,7 +134,7 @@ console.log('events in dashboard', events);
             </button>
             <button
               onClick={() => setActiveTab('attending')}
-              className={`px-4 py-2 text-xl border-b-2 border-transparent rounded-t-lg transition-all duration-300 ${
+              className={`px-4 py-2 text-base border-b-2 border-transparent rounded-t-lg transition-all duration-300 ${
                 activeTab === 'attending'
                   ? 'text-indigo-600 dark:text-indigo-500 border-indigo-600 dark:border-indigo-500'
                   : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
@@ -145,17 +144,16 @@ console.log('events in dashboard', events);
             </button>
           </div>
 
-          {/* Events Grid */}
           <div>
             {activeTab === 'created' ? (
               <div>
                 <div className="flex flex-col items-start justify-between gap-4 mb-10 sm:flex-row sm:items-center">
-                  <h2 className="text-3xl font-bold transition-colors duration-500 text-neutral-900 dark:text-neutral-50">
+                  <h2 className="text-2xl font-bold transition-colors duration-500 text-neutral-900 dark:text-neutral-50">
                     Events You've Created
                   </h2>
                   <button
                     onClick={() => navigate('/create-event')}
-                    className="px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-indigo-600 rounded-xl hover:bg-indigo-700"
+                    className="px-6 py-2.5 text-base font-bold text-white transition-all duration-200 bg-indigo-600 rounded-lg hover:bg-indigo-700"
                   >
                     + New Event
                   </button>
@@ -178,8 +176,19 @@ console.log('events in dashboard', events);
                     ))}
                   </div>
                 ) : (
-                  <div className="italic transition-colors duration-500 text-neutral-600 dark:text-neutral-600">
-                    You haven't created any events yet.
+                  <div className="py-16 text-center border-2 border-dashed border-neutral-100 dark:border-neutral-800 rounded-2xl animate-fade-in">
+                    <div className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <LayoutGrid className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
+                    </div>
+                    <p className="text-neutral-600 dark:text-neutral-400 font-medium">
+                      You haven't created any events yet.
+                    </p>
+                    <button
+                      onClick={() => navigate('/create-event')}
+                      className="mt-4 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                    >
+                      Create your first event →
+                    </button>
                   </div>
                 )}
               </div>
@@ -201,12 +210,24 @@ console.log('events in dashboard', events);
                           handleRsvp(event._id || event.id)
                         }
                         isJoined={true}
+                        loading={rsvpLoading[event._id || event.id]}
                       />
                     ))}
                   </div>
                 ) : (
-                  <div className="italic transition-colors duration-500 text-neutral-600 dark:text-neutral-400">
-                    You're not attending any events yet.
+                  <div className="py-16 text-center border-2 border-dashed border-neutral-100 dark:border-neutral-800 rounded-2xl animate-fade-in">
+                    <div className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <Calendar className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
+                    </div>
+                    <p className="text-neutral-600 dark:text-neutral-400 font-medium">
+                      You're not attending any events yet.
+                    </p>
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="mt-4 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                    >
+                      Browse events to join →
+                    </button>
                   </div>
                 )}
               </div>

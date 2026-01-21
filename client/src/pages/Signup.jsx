@@ -13,7 +13,7 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { login, user } = useAppContext(); // Get user for Navbar
+  const { login, user } = useAppContext();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,18 +24,15 @@ export default function Signup() {
   const [success, setSuccess] = useState('');
 
 
-  // FIXED: Use ALL validation utils properly
   const validateForm = () => {
     const newErrors = {};
     
-    // Use your validation utils
     const nameErr = validateName(name);
     if (nameErr) newErrors.name = nameErr;
     
     const emailErr = validateEmail(email);
     if (emailErr) newErrors.email = emailErr;
     
-    // Password validation (use passwordStrength or custom logic)
     if (!password) newErrors.password = 'Password is required';
     else {
       const strength = passwordStrength(password);
@@ -67,11 +64,9 @@ export default function Signup() {
       try {
         const response = await api.post('/auth/register', formData);
 
-        // Check if registration was successful (status 200-299)
         if (response.status === 201 || response.status === 200) {
           const userData = response.data.user || response.data;
           
-          // Extract user data properly
           const userToSave = {
             id: userData.id || userData._id,
             name: userData.name || formData.name,
@@ -88,14 +83,9 @@ export default function Signup() {
           setSuccess('');
         }
       } catch (error) {
-        console.error('Registration Error:', error);
-        console.error('Status:', error.response?.status);
-        console.error('Error data:', error.response?.data);
-        console.error('Request data:', formData);
         
         let errorMsg = error.response?.data?.message || error.message || 'Registration failed';
         
-        // User-friendly error messages
         if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
           errorMsg = 'Email already registered. Please use a different email or login.';
         } else if (error.response?.status === 400) {
@@ -123,27 +113,22 @@ export default function Signup() {
   };
 
   const handleLogout = () => {
-    // No-op on signup page
-    console.log('Logout clicked on signup page');
   };
 
   return (
     <div className="min-h-screen overflow-hidden transition-colors duration-500 bg-white dark:bg-neutral-950">
-      {/* Main Content */}
       <main className="flex items-center justify-center min-h-screen px-4 py-6 overflow-y-auto">
         <div className="w-full max-w-lg">
-          <div className="p-6 transition-colors duration-500 bg-white border shadow-2xl sm:p-8 dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
-            {/* Header */}
+          <div className="p-5 transition-colors duration-500 bg-white border shadow-2xl sm:p-6 dark:bg-neutral-900 rounded-xl border-neutral-200 dark:border-neutral-800">
             <div className="mb-4 text-center">
-              <h1 className="mb-2 text-5xl font-black text-transparent bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 dark:from-indigo-500 dark:to-indigo-400 bg-clip-text drop-shadow-lg">
+              <h1 className="mb-1 text-3xl font-black text-transparent bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 dark:from-indigo-500 dark:to-indigo-400 bg-clip-text drop-shadow-lg">
                 EventHub
               </h1>
-              <p className="text-base font-medium text-neutral-600 dark:text-gray-400">
+              <p className="text-sm font-medium text-neutral-600 dark:text-gray-400">
                 Create your account
               </p>
             </div>
 
-            {/* Success Alert */}
             {success && (
               <div className="p-3 mb-4 text-sm text-green-700 transition-colors duration-500 border border-green-300 shadow-md dark:text-green-400 dark:border-green-600/50 bg-green-50 dark:bg-green-500/10 rounded-2xl">
                 <div className="flex items-start gap-3">
@@ -155,7 +140,6 @@ export default function Signup() {
               </div>
             )}
 
-            {/* Error Alert */}
             {errors.submit && (
               <div className="p-3 mb-4 text-sm text-red-700 transition-colors duration-500 border border-red-300 shadow-md dark:text-red-400 dark:border-red-600/50 bg-red-50 dark:bg-red-500/10 rounded-2xl">
                 <div className="flex items-start gap-3">
@@ -167,7 +151,6 @@ export default function Signup() {
               </div>
             )}
 
-            {/* Signup Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 id="name"
@@ -212,7 +195,6 @@ export default function Signup() {
                 required
               />
 
-              {/* Password Strength Meter */}
               <div className="pt-1">
                 <div className="w-full h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
                   <div
@@ -250,7 +232,7 @@ export default function Signup() {
               <Button
                 type="submit"
                 variant="primary"
-                size="lg"
+                size="md"
                 className="w-full mt-4 group"
                 disabled={loading}
               >
@@ -268,9 +250,8 @@ export default function Signup() {
               </Button>
             </form>
 
-            {/* Login Link */}
             <div className="pt-4 mt-6 text-center transition-colors duration-500 border-t border-neutral-200 dark:border-neutral-700">
-              <p className="text-lg text-neutral-600 dark:text-gray-400">
+              <p className="text-base text-neutral-600 dark:text-gray-400">
                 Already have an account?{' '}
                 <button
                   type="button"
