@@ -1,45 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import EventCard from '../components/EventCard';
 import Navbar from '../components/Navbar';
-import { useAppContext } from '../context/AppProvider';
+import { useAuth } from '../context/AuthContext';
+import { useEvents } from '../hooks/useEvents';
 import { useToast } from '../context/ToastContext';
+import { isUserRsvped } from '../utils/rsvpHelper';
 import { LayoutGrid, Calendar } from 'lucide-react';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const { user, events, logout, deleteEvent, cancelRsvp } = useAppContext();
+  const { user, logout } = useAuth();
+  const { events, deleteEvent, cancelRsvp, error: eventsError, loading: eventsLoading, fetchEvents } = useEvents();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('created');
   const [rsvpLoading, setRsvpLoading] = useState({});
 
   const currentUserId = user?.id || user?._id || null;
 
+  // Refresh events on mount
+  useEffect(() => {
+    if (fetchEvents) {
+      fetchEvents();
+    }
+  }, []);
+
+  // Log when events change
+
   const getOwnerId = (e) => {
     if (!e.owner) return null;
     if (typeof e.owner === 'string') return e.owner;
-    if (typeof e.owner === 'object') return e.owner._id || null;
+    if (typeof e.owner === 'object') return e.owner._id || e.owner.id || null;
     return null;
   };
 
   const createdEvents =
     events.filter((e) => {
       const ownerId = getOwnerId(e);
-      return ownerId && currentUserId && ownerId === currentUserId;
+      const isCreatedByUser = ownerId && currentUserId && String(ownerId) === String(currentUserId);
+      
+      
+      return isCreatedByUser;
     }) || [];
 
   const attendingEvents =
     events.filter((e) => {
       const ownerId = getOwnerId(e);
-      const isOwner =
-        ownerId && currentUserId && ownerId === currentUserId;
-
-      const isAttending = (e.rsvps || []).some((r) =>
-        typeof r === 'string'
-          ? r === currentUserId
-          : r?._id === currentUserId
-      );
+      const isOwner = ownerId && currentUserId && String(ownerId) === String(currentUserId);
+      const isAttending = isUserRsvped(e, currentUserId);
+      
 
       return isAttending && !isOwner;
     }) || [];
@@ -121,7 +131,24 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 mb-6 transition-colors duration-500 border-b border-neutral-200 dark:border-neutral-800">
+          {eventsError && (
+            <div className="p-4 mb-8 text-sm text-red-700 border border-red-200 rounded-xl bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span>{eventsError}</span>
+              </div>
+            </div>
+          )}
+
+          {eventsLoading && !events.length ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-12 h-12 border-4 border-indigo-200 rounded-full dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-500 animate-spin" />
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center gap-3 mb-6 transition-colors duration-500 border-b border-neutral-200 dark:border-neutral-800">
             <button
               onClick={() => setActiveTab('created')}
               className={`px-4 py-2 text-base border-b-2 border-transparent rounded-t-lg transition-all duration-300 ${
@@ -234,7 +261,9 @@ export default function UserDashboard() {
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
-  );
+  </div>
+</div>
+);
 }

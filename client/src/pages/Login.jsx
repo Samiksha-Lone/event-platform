@@ -4,30 +4,24 @@ import { useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { validateEmail, validatePassword } from '../utils/validation';
-import { useAppContext } from '../context/AppProvider';
+import { useAuth } from '../context/AuthContext';
 import { FiMail, FiLock } from 'react-icons/fi';
-import { api } from '../utils/api';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAppContext();
+  const { login, loading: authLoading, clearError } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
 
   const validateForm = () => {
-
     const newErrors = {};
-
     const emailErr = validateEmail(email);
     if (emailErr) newErrors.email = emailErr;
-
     const passwordErr = validatePassword(password);
     if (passwordErr) newErrors.password = passwordErr;
-
     return newErrors;
   };
 
@@ -36,54 +30,22 @@ export default function Login() {
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-      const formData = {
+      const credentials = {
         email: email.trim(),
         password: password
       };
 
-      setLoading(true);
       setErrors({});
       setSuccess('');
-      try {
-        const response = await api.post('/auth/login', formData);
+      clearError();
+      
+      const result = await login(credentials);
 
-        if (response.status === 200) {
-          const userData = response.data.user || response.data;
-
-          const userToSave = {
-            id: userData.id || userData._id,
-            name: userData.name || userData.email?.split('@')[0],
-            email: userData.email,
-            ...userData
-          };
-
-          if (response.data.token) {
-            localStorage.setItem('authToken', response.data.token);
-          }
-
-          login(userToSave);
-
-          setSuccess('Logged in successfully! Redirecting...');
-          setErrors({});
-          setTimeout(() => navigate('/dashboard'), 1500);
-        } else {
-          setErrors({ submit: 'Login failed. Please try again.' });
-          setSuccess('');
-        }
-      } catch (error) {
-
-        let errorMsg = error.response?.data?.message || error.message || 'Login failed';
-
-        if (error.response?.status === 401 || error.response?.status === 400) {
-          errorMsg = 'Invalid credentials. Please check your email and password.';
-        } else if (error.response?.status === 500) {
-          errorMsg = 'Server error. Please try again later.';
-        }
-
-        setErrors({ submit: errorMsg });
-        setSuccess('');
-      } finally {
-        setLoading(false);
+      if (result.success) {
+        setSuccess('Logged in successfully! Redirecting...');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } else {
+        setErrors({ submit: result.error });
       }
     } else {
       setErrors(newErrors);
@@ -174,9 +136,9 @@ export default function Login() {
                 variant="primary"
                 size="lg"
                 className="w-full mt-2 group"
-                disabled={loading}
+                disabled={authLoading}
               >
-                {loading ? (
+                {authLoading ? (
                   <>
                     <svg className="inline w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

@@ -5,13 +5,15 @@ import Navbar from '../components/Navbar';
 import AiDescriptionModal from '../components/AiDescriptionModal';
 import AiPosterModal from '../components/AiPosterModal';
 import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon, Sparkles, Palette } from 'lucide-react';
-import { useAppContext } from '../context/AppProvider';
+import { useAuth } from '../context/AuthContext';
+import { useEvents } from '../hooks/useEvents';
 import { useToast } from '../context/ToastContext';
 
 export default function EditEvent() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user, editEvent } = useAppContext();
+  const { user } = useAuth();
+  const { editEvent } = useEvents();
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,11 @@ export default function EditEvent() {
     capacity: '',
     date: '',
     time: '',
+    eventType: 'offline',
     location: '',
+    meetingPlatform: 'zoom',
+    meetingLink: '',
+    meetingPassword: '',
     imageFile: null,
     imageUrl: '',
     existingImage: '',
@@ -47,19 +53,23 @@ export default function EditEvent() {
           capacity: ev.capacity || '',
           date: ev.date?.slice(0, 10) || '',
           time: ev.time || '',
+          eventType: ev.eventType || 'offline',
           location: ev.location || '',
+          meetingPlatform: ev.meetingPlatform || 'zoom',
+          meetingLink: ev.meetingLink || '',
+          meetingPassword: ev.meetingPassword || '',
           imageFile: null,
           imageUrl: '',
           existingImage: ev.image || '',
         });
-      } catch (err) {
+      } catch {
         addToast('Failed to load event details.', 'error');
       } finally {
         setLoading(false);
       }
     };
     fetchEvent();
-  }, [id]);
+  }, [id, addToast]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,6 +90,10 @@ export default function EditEvent() {
       else if (text.match(/music|concert|band|dj|song|dance/)) suggested = "music";
       else if (text.match(/sports|football|soccer|gym|fitness|match/)) suggested = "sports";
       else if (text.match(/food|eat|cook|chef|dinner|restaurant/)) suggested = "food";
+      else if (text.match(/health|gym|yoga|fitness|medical|doctor|wellness|mental/)) suggested = "health";
+      else if (text.match(/learn|school|college|workshop|study|class|course|training/)) suggested = "education";
+      else if (text.match(/workshop|hands-on|build|create|seminar/)) suggested = "workshop";
+      else if (text.match(/party|meet|social|hangout|gathering|friends/)) suggested = "social";
       
       setForm(prev => ({ ...prev, category: suggested }));
       setIsDetectingCategory(false);
@@ -105,6 +119,10 @@ export default function EditEvent() {
       music: "Evening (7:00 PM) creates the best vibe.",
       sports: "Weekend mornings (9:00 AM) are peak energy.",
       food: "Lunchtime (12:30 PM) or Dinner (7:30 PM) is ideal.",
+      health: "Morning (8:00 AM) is best for health activities.",
+      education: "Morning (9:00 AM) is ideal for learning.",
+      workshop: "Morning (10:00 AM) provides great focus for workshops.",
+      social: "Evening (6:00 PM) is the best time for social events.",
       other: "Afternoons (2:00 PM) usually work for most."
     };
     return suggestions[form.category] || suggestions.other;
@@ -114,8 +132,20 @@ export default function EditEvent() {
     e.preventDefault();
     setSaving(true);
 
-    if (!form.title || !form.description || !form.capacity || !form.date || !form.time || !form.location) {
+    if (!form.title || !form.description || !form.capacity || !form.date || !form.time || !form.eventType) {
       addToast('Please fill all required fields.', 'error');
+      setSaving(false);
+      return;
+    }
+
+    if (form.eventType === "offline" && !form.location) {
+      addToast('Location is required for in-person events.', 'error');
+      setSaving(false);
+      return;
+    }
+
+    if (form.eventType === "online" && (!form.meetingPlatform || !form.meetingLink)) {
+      addToast('Meeting platform and link are required for online events.', 'error');
       setSaving(false);
       return;
     }
@@ -123,15 +153,32 @@ export default function EditEvent() {
     try {
       let res;
 
+      const baseData = {
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        capacity: form.capacity,
+        date: form.date,
+        time: form.time,
+        eventType: form.eventType,
+      };
+
+      const eventData = form.eventType === "offline" 
+        ? { ...baseData, location: form.location }
+        : { 
+            ...baseData, 
+            meetingPlatform: form.meetingPlatform,
+            meetingLink: form.meetingLink,
+            meetingPassword: form.meetingPassword || undefined
+          };
+
       if (imageMode === 'file' && form.imageFile) {
         const formdata = new FormData();
-        formdata.append('title', form.title);
-        formdata.append('description', form.description);
-        formdata.append('category', form.category);
-        formdata.append('capacity', form.capacity);
-        formdata.append('date', form.date);
-        formdata.append('time', form.time);
-        formdata.append('location', form.location);
+        Object.keys(eventData).forEach(key => {
+          if (eventData[key] !== undefined) {
+            formdata.append(key, eventData[key]);
+          }
+        });
         formdata.append('image', form.imageFile);
 
         res = await api.put(`/event/${id}`, formdata, {
@@ -141,36 +188,22 @@ export default function EditEvent() {
       else if (imageMode === 'url' && form.imageUrl) {
         res = await api.put(
           `/event/${id}`,
-          {
-            title: form.title,
-            description: form.description,
-            category: form.category,
-            capacity: form.capacity,
-            date: form.date,
-            time: form.time,
-            location: form.location,
-            imageUrl: form.imageUrl,
-          },
+          { ...eventData, imageUrl: form.imageUrl },
           { withCredentials: true }
         );
       }
       else {
         res = await api.put(
           `/event/${id}`,
-          {
-            title: form.title,
-            description: form.description,
-            category: form.category,
-            capacity: form.capacity,
-            date: form.date,
-            time: form.time,
-            location: form.location,
-          },
+          eventData,
           { withCredentials: true }
         );
       }
 
-      const updated = res.data.event;
+      const updated = {
+        ...res.data.event,
+        owner: user?.id || user?._id || res.data.event.owner
+      };
       editEvent(updated);
       addToast(res.data?.message || 'Event updated successfully!', 'success');
       setTimeout(() => navigate('/user-dashboard'), 1500);
@@ -223,7 +256,7 @@ export default function EditEvent() {
                   </p>
                 </div>
 
-                <div className="p-3 border rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border-neutral-100 dark:border-neutral-800/50 min-w-[200px]">
+                <div className="p-3 border rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border-neutral-100 dark:border-neutral-800/50 min-w-50">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-tighter text-neutral-500 dark:text-neutral-400">
                       Viral Potential
@@ -308,6 +341,10 @@ export default function EditEvent() {
                       <option value="music">Music</option>
                       <option value="sports">Sports</option>
                       <option value="food">Food</option>
+                      <option value="health">Health</option>
+                      <option value="education">Education</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="social">Social</option>
                       <option value="other">Other</option>
                     </select>
                   </div>
@@ -373,23 +410,109 @@ export default function EditEvent() {
                 </div>
 
                 <div>
-                  <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
-                    Location <span className="text-red-500">*</span>
+                  <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
+                    Event Type <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <MapPin
-                      size={20}
-                      className="absolute -translate-y-1/2 pointer-events:none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
-                    />
-                    <input
-                      type="text"
-                      name="location"
-                      value={form.location}
-                      onChange={handleChange}
-                      className="w-full px-5 py-4 pl-12 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text:white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, eventType: "offline" }))}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
+                        form.eventType === "offline"
+                          ? "bg-indigo-600 text-white shadow-lg"
+                          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border-2 border-neutral-300 dark:border-neutral-700"
+                      }`}
+                    >
+                      <MapPin size={18} className="inline mr-2" />
+                      In-Person
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, eventType: "online" }))}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
+                        form.eventType === "online"
+                          ? "bg-indigo-600 text-white shadow-lg"
+                          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border-2 border-neutral-300 dark:border-neutral-700"
+                      }`}
+                    >
+                      <LinkIcon size={18} className="inline mr-2" />
+                      Online
+                    </button>
                   </div>
                 </div>
+
+                {form.eventType === "offline" ? (
+                  <div>
+                    <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
+                      Location <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin
+                        size={20}
+                        className="absolute -translate-y-1/2 pointer-events:none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        name="location"
+                        value={form.location}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 pl-12 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text:white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
+                        Meeting Platform <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="meetingPlatform"
+                        value={form.meetingPlatform}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text:white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="zoom">Zoom</option>
+                        <option value="google-meet">Google Meet</option>
+                        <option value="microsoft-teams">Microsoft Teams</option>
+                        <option value="webex">Webex</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
+                        Meeting Link <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <LinkIcon
+                          size={20}
+                          className="absolute -translate-y-1/2 pointer-events:none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
+                        />
+                        <input
+                          type="url"
+                          name="meetingLink"
+                          value={form.meetingLink}
+                          onChange={handleChange}
+                          className="w-full px-5 py-4 pl-12 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text:white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
+                        Meeting Password <span className="text-gray-400">(Optional)</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="meetingPassword"
+                        value={form.meetingPassword}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 text-lg bg-white border-2 border-neutral-300 rounded-xl dark:bg:white/10 dark:border-neutral-600 text-neutral-900 dark:text:white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
@@ -451,7 +574,7 @@ export default function EditEvent() {
                         setImageMode('url');
                         setIsPosterModalOpen(true);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-lg border border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-indigo-600 border border-indigo-200 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
                     >
                       <Palette size={16} />
                       ✨ AI Poster

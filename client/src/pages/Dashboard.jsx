@@ -6,12 +6,14 @@ import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import Input from '../components/Input';
 import { EventCardSkeleton } from '../components/Skeleton';
-import { useAppContext } from '../context/AppProvider';
+import { useAuth } from '../context/AuthContext';
+import { useEvents } from '../hooks/useEvents';
 import { FiSearch } from 'react-icons/fi';
 import { LayoutGrid, Calendar } from 'lucide-react';
 import CalendarView from '../components/CalendarView';
 import { useToast } from '../context/ToastContext';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { isUserRsvped, isEventFull } from '../utils/rsvpHelper';
 import { useRef } from 'react';
 
 export default function Dashboard() {
@@ -23,7 +25,8 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState('grid');
   const [rsvpLoading, setRsvpLoading] = useState({});
 
-  const { events, user, rsvp, cancelRsvp, logout, fetchEvents, loading: globalLoading } = useAppContext();
+  const { user, logout } = useAuth();
+  const { events, rsvp, cancelRsvp, fetchEvents, loading: globalLoading, error: eventsError } = useEvents();
   const { addToast } = useToast();
 
   const searchInputRef = useRef(null);
@@ -175,6 +178,10 @@ export default function Dashboard() {
                 <option value="music">Music</option>
                 <option value="sports">Sports</option>
                 <option value="food">Food</option>
+                <option value="health">Health</option>
+                <option value="education">Education</option>
+                <option value="workshop">Workshop</option>
+                <option value="social">Social</option>
                 <option value="other">Other</option>
               </select>
 
@@ -199,6 +206,23 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {eventsError && (
+            <div className="p-4 mb-8 text-sm text-red-700 border border-red-200 rounded-xl bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span>{eventsError}</span>
+                <button 
+                  onClick={() => fetchEvents()} 
+                  className="ml-auto font-bold underline hover:no-underline"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
           {globalLoading ? (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
@@ -210,11 +234,11 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {filteredEventsList.map((event, index) => {
                   const eventId = event._id || event.id;
-                  const rsvps = event.rsvps || [];
-                  const isJoined = rsvps.some(
-                    (id) => id === user?.id || id?._id === user?.id
-                  );
-                  const isFull = rsvps.length >= event.capacity;
+                  const currentUserId = user?.id || user?._id;
+                  
+                  // Use helper function for consistent RSVP checking
+                  const isJoined = isUserRsvped(event, currentUserId);
+                  const isFull = isEventFull(event);
 
                   return (
                     <div

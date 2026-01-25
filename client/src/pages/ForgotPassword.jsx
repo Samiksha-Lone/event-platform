@@ -14,7 +14,14 @@ export default function ForgotPassword() {
     setError('');
     try {
       const res = await api.post('/auth/forgot-password', { email });
-      setMsg(res.data.message);
+      if (res.data.warning) {
+        setError(res.data.message);
+      } else if (res.data.devNote) {
+        // Development mode - show both message and dev note
+        setMsg(res.data.message + ' ' + res.data.devNote);
+      } else {
+        setMsg(res.data.message);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
     }

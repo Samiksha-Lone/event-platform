@@ -16,9 +16,6 @@ export const useKeyboardShortcuts = (onSearch) => {
         onSearch?.();
       }
 
-      if (e.key === 'Escape') {
-      }
-
       if (e.altKey && e.key === 'c') {
         e.preventDefault();
         navigate('/create-event');

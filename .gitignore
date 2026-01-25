@@ -4,6 +4,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
 !.env.example
 
 # Logs
@@ -38,16 +39,46 @@ server/build/
 .parcel-cache/
 .next/
 .cache/
+out/
 
 # IDE & Editor
 .vscode/
+!.vscode/extensions.json
 .idea/
 *.sublime-workspace
+*.sublime-project
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.iml
+
+# OS Files
+.DS_Store
+Thumbs.db
+.env.*.js
+
+# Deployment
+.vercel
+.netlify
+
+# Temp & Cache
+temp/
+tmp/
+*.tmp
+.cache/
+
+# IDE Settings (per-user)
+.vscode/settings.json
+.idea/workspace.xml
+
+# Optional REPL history
+.node_repl_history
+
+# Debug
+debug/
+.debug
 *.swp
 *.swo
 *~

@@ -1,90 +1,169 @@
 # EventHub – MERN Event Platform
 
-EventHub is a full‑stack event management platform built with the MERN stack. It lets authenticated users create and manage events, browse all upcoming events, and RSVP or leave events while enforcing capacity and authentication rules.
+EventHub is a full-stack event management platform built with the MERN stack (MongoDB, Express, React, Node.js). It lets authenticated users create and manage events, browse all upcoming events, and RSVP to events while enforcing capacity and authentication rules.
+
+**Live Demo:** Coming soon  
+**Repository:** [GitHub](https://github.com/Samiksha-Lone/event-platform)
 
 ---
 
 ## ✨ Features
 
-- **User authentication**
-  - Email/password registration and login using JWT‑based authentication
-  - Protected API routes for event creation, editing, deletion, and RSVP
-  - Secure password hashing with bcrypt
+### User Authentication
+- Email/password registration and login using JWT-based authentication
+- Secure password hashing with bcrypt
+- Protected API routes for authenticated actions
+- Session persistence with cookies
+- Password reset via email link
 
-- **Event management**
-  - Create, read, update, and delete events
-  - Event fields: title, description, date, time, location, category, capacity, and image
-  - Only the event owner can edit or delete their events
+### Event Management
+- Create, read, update, and delete events
+- Event fields: title, description, date, time, location, category, capacity, and image
+- Only the event owner can edit or delete their events
+- Category filtering (tech, music, sports, food, other)
+- Image upload with automatic optimization
 
-- **RSVP system**
-  - Join and leave events with a single click
-  - Capacity enforcement: users cannot RSVP if the event is full
-  - A user can only RSVP once per event
+### RSVP System
+- Join and leave events with a single click
+- Capacity enforcement: users cannot RSVP if the event is full
+- Real-time RSVP count updates
+- Users can only RSVP once per event
+- Cancel RSVP at any time
 
-- **User dashboard**
-  - View events created by the logged‑in user
-  - View events the user has joined via RSVP
-  - Quick actions to edit events or leave joined events
+### User Dashboard
+- View events created by the logged-in user
+- View events the user has joined via RSVP
+- Quick actions to edit events or cancel RSVPs
+- Organized by "My Events" and "Events I Joined" tabs
 
-- **Password flows**
-  - Forgot‑password page to request a reset link
-  - Secure reset‑password page with token verification
-  - Strong password rules with a visual strength meter
+### Password Management
+- Forgot-password page to request a reset link
+- Secure reset-password page with token verification
+- Strong password rules with visual strength meter
+- Email verification for password resets
 
-- **UI & UX**
-  - Responsive React interface built with Tailwind CSS
-  - Clean event cards, filters, and dashboard layout
-  - Inline validation errors and toast‑style feedback instead of blocking alerts
+### UI/UX
+- Fully responsive React interface built with Tailwind CSS
+- Dark mode support with theme toggle
+- Clean event cards with visual capacity indicators
+- Real-time toast notifications for feedback
+- Skeleton loaders for better UX
+- Mobile-optimized layout
 
 ---
 
 ## 🏗️ Tech Stack
 
-**Frontend**
+### Frontend
+- **React 18** with Hooks for component state management
+- **Vite** for fast development and optimized builds
+- **React Router DOM** for client-side routing
+- **Axios** for API communication with credentials support
+- **Tailwind CSS** for responsive styling
+- **Context API** for global state (Auth, Events, Theme, Toast)
+- **Error Boundaries** for graceful error handling
 
-- React + Vite  
-- React Router DOM  
-- Context or custom hooks for auth and global state  
-- Tailwind CSS for styling  
-- Fetch / Axios for API calls
+### Backend
+- **Node.js** runtime
+- **Express.js** for HTTP server and middleware
+- **MongoDB** with Mongoose ODM for data persistence
+- **JSON Web Tokens (JWT)** for stateless authentication
+- **bcryptjs** for secure password hashing
+- **Multer** for file uploads
+- **CORS** middleware for cross-origin requests
+- **dotenv** for environment configuration
+- **Nodemon** for development auto-reload
 
-**Backend**
-
-- Node.js  
-- Express.js  
-- MongoDB with Mongoose  
-- JSON Web Tokens (JWT) for authentication  
-- Bcrypt for password hashing  
-- Multer / custom storage service for image uploads  
-- CORS middleware
-
-**Infrastructure**
-
-- MongoDB Atlas for database (local MongoDB also supported)
+### Infrastructure & Services
+- **MongoDB Atlas** for cloud database (optional: local MongoDB)
+- **ImageKit** for image optimization and CDN (optional)
+- **Email service** for password reset emails (SMTP configured)
+- **CORS** enabled for frontend-backend communication
 
 ---
 
 ## 📂 Project Structure
 
 ```
-event_platform/
-├── client/                # React frontend
+event-platform/
+├── client/                           # React Frontend
+│   ├── public/
+│   │   └── manifest.json
 │   ├── src/
-│   │   ├── components/    # Reusable UI components (buttons, inputs, cards)
-│   │   ├── pages/         # Login, Register, Dashboard, UserDashboard, EditEvent, etc.
-│   │   ├── context/       # Auth and app providers
-│   │   ├── utils/         # Helpers (password strength, API helpers)
-│   │   └── main.jsx
-│   └── vite.config.js
-└── server/                # Node/Express backend
-    ├── src/
-    │   ├── controllers/   # auth.controller.js, event.controller.js
-    │   ├── middleware/    # authMiddleware (JWT verification)
-    │   ├── models/        # user.model.js, event.model.js
-    │   ├── routes/        # auth.routes.js, event.routes.js
-    │   ├── services/      # storageService for images
-    │   └── app.js / server.js
-    └── package.json
+│   │   ├── components/               # Reusable UI components
+│   │   │   ├── Button.jsx
+│   │   │   ├── Input.jsx
+│   │   │   ├── Card.jsx
+│   │   │   ├── EventCard.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── ErrorBoundary.jsx
+│   │   │   ├── Skeleton.jsx
+│   │   │   ├── AiPosterModal.jsx
+│   │   │   └── AiDescriptionModal.jsx
+│   │   ├── pages/                    # Page components
+│   │   │   ├── Login.jsx
+│   │   │   ├── Signup.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── EventDetails.jsx
+│   │   │   ├── CreateEvent.jsx
+│   │   │   ├── EditEvent.jsx
+│   │   │   ├── UserDashboard.jsx
+│   │   │   ├── ForgotPassword.jsx
+│   │   │   ├── ResetPassword.jsx
+│   │   │   └── NotFound.jsx
+│   │   ├── context/                  # Global state management
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── EventContext.jsx
+│   │   │   ├── ThemeContext.jsx
+│   │   │   ├── ToastContext.jsx
+│   │   │   └── AppProvider.jsx
+│   │   ├── hooks/                    # Custom React hooks
+│   │   │   ├── useEvents.js
+│   │   │   └── useKeyboardShortcuts.js
+│   │   ├── routes/
+│   │   │   └── AppRoutes.jsx         # Route definitions
+│   │   ├── utils/                    # Helper functions
+│   │   │   ├── api.js
+│   │   │   ├── validation.js
+│   │   │   └── rsvpHelper.js
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── eslint.config.js
+│   └── .gitignore
+│
+├── server/                           # Node/Express Backend
+│   ├── src/
+│   │   ├── controllers/              # Business logic
+│   │   │   ├── auth.controller.js
+│   │   │   └── event.controller.js
+│   │   ├── middlewares/              # Express middlewares
+│   │   │   └── auth.middleware.js    # JWT verification
+│   │   ├── models/                   # Mongoose schemas
+│   │   │   ├── user.model.js
+│   │   │   └── event.model.js
+│   │   ├── routes/                   # API endpoints
+│   │   │   ├── auth.routes.js
+│   │   │   └── event.routes.js
+│   │   ├── services/                 # Utility services
+│   │   │   └── storage.service.js    # Image uploads
+│   │   ├── utils/
+│   │   │   └── mailer.js             # Email sender
+│   │   ├── db/
+│   │   │   └── db.js                 # MongoDB connection
+│   │   └── app.js                    # Express app setup
+│   ├── server.js                     # Server entry point
+│   ├── package.json
+│   ├── .env.example
+│   └── .gitignore
+│
+├── .gitignore                        # Root gitignore
+├── README.md                         # This file
+└── package.json                      # Root package.json (optional)
 ```
 
 ---
@@ -93,98 +172,278 @@ event_platform/
 
 ### Prerequisites
 
-- Node.js (LTS)  
-- npm or yarn  
-- MongoDB Atlas URI or local MongoDB instance
+- **Node.js** (v16 or higher)
+- **npm** or **yarn**
+- **MongoDB** (Atlas account or local instance)
+- **Git**
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
+```bash
+git clone https://github.com/Samiksha-Lone/event-platform.git
+cd event-platform
 ```
-git clone https://github.com/Samiksha-Lone/event-platform
-cd event_platform
-```
 
-### 2. Backend setup
+### 2. Backend Setup
 
-```
+Navigate to the server directory:
+
+```bash
 cd server
 npm install
 ```
 
-Create a `.env` file in the `server`:
+Create a `.env` file in the `server` directory:
 
-```
+```env
+# Server Configuration
 PORT=3000
-MONGO_URI=<your-mongodb-connection-string>
-JWT_SECRET=<your-jwt-secret>
-# IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT (optional)
-# SMTP_USER, SMTP_PASS (optional for email)
+NODE_ENV=development
+
+# Database
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/event-platform
+
+# JWT Authentication
+JWT_SECRET=your_super_secret_jwt_key_here_change_this
+
+# Client URL (for CORS and redirects)
 CLIENT_URL=http://localhost:5173
+
+# Email Configuration (for password reset)
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+
+# Image Upload (Optional - ImageKit)
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_endpoint
 ```
 
-Run the backend (from `server`):
+Start the backend server:
 
 ```bash
+npm run dev    # Development with nodemon
+# or
+npm start      # Production
+```
+
+The backend will be running at `http://localhost:3000`
+
+### 3. Frontend Setup
+
+Open a new terminal and navigate to the client directory:
+
+```bash
+cd client
 npm install
-npm run dev   # or: npm start
 ```
 
-### 3. Frontend setup
+Create a `.env` file in the `client` directory:
 
-```
-cd ../client
-npm install
-```
-
-Create a `.env` file in the `client` folder and set:
-
-```
+```env
 VITE_API_URL=http://localhost:3000
-CLIENT_URL=http://localhost:5173
 ```
 
-Run the frontend (from `client`):
+Start the frontend development server:
 
 ```bash
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173`
+
+---
+
+## 🔐 Authentication & Authorization
+
+### How It Works
+1. Users register with email and password
+2. Password is hashed using bcrypt before storage
+3. On login, JWT token is generated and stored in an HTTP-only cookie
+4. Token is automatically sent with all authenticated requests
+5. Backend middleware validates token and attaches user to request object
+
+### Protected Routes
+- `POST /auth/register` - Public (registration)
+- `POST /auth/login` - Public (login)
+- `POST /auth/logout` - Protected
+- `GET /auth/me` - Protected (get current user)
+- `POST /event/create` - Protected (create event)
+- `PUT /event/:id` - Protected (edit own event)
+- `DELETE /event/:id` - Protected (delete own event)
+- `POST /event/:id/rsvp` - Protected (join event)
+- `DELETE /event/:id/rsvp` - Protected (leave event)
+
+---
+
+## 📅 Core User Flows
+
+### 1. Browse Events
+- Open the dashboard to view all upcoming events
+- Search and filter by category
+- View detailed event information on event details page
+- See available spots and event capacity
+
+### 2. Create and Manage Events
+- Authenticate to access event creation
+- Fill in event details: title, description, date, time, location, category, capacity
+- Upload event image
+- Edit event details (only as owner)
+- Delete event (only as owner)
+- View all events you've created in user dashboard
+
+### 3. RSVP to Events
+- Browse events and view details
+- Click "RSVP Now" to join an event
+- System checks capacity before confirming
+- View list of attendees
+- Cancel RSVP anytime to free up a spot
+- View all events you've joined in user dashboard
+
+### 4. Password Recovery
+- Click "Forgot Password" on login page
+- Enter your email address
+- Receive reset link via email
+- Click link (valid for 1 hour)
+- Set new password with strength requirements
+- Login with new password
+
+---
+
+## 🛠️ API Documentation
+
+### Authentication Endpoints
+```
+POST   /auth/register      - Register new user
+POST   /auth/login         - Login user
+POST   /auth/logout        - Logout user
+GET    /auth/me            - Get current user
+POST   /auth/forgot-password - Request password reset
+POST   /auth/reset-password - Reset password with token
+```
+
+### Event Endpoints
+```
+GET    /event              - Get all events (public)
+GET    /event/:id          - Get single event (public)
+POST   /event/create       - Create new event (protected)
+PUT    /event/:id          - Update event (protected, owner only)
+DELETE /event/:id          - Delete event (protected, owner only)
+POST   /event/:id/rsvp     - Join event (protected)
+DELETE /event/:id/rsvp     - Leave event (protected)
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend Issues
+
+**Port already in use**
+```bash
+# Find process using port 3000
+lsof -i :3000
+# Kill process
+kill -9 <PID>
+```
+
+**MongoDB connection error**
+- Verify `MONGO_URI` in `.env`
+- Check MongoDB Atlas IP whitelist
+- Ensure credentials are correct
+
+**JWT token issues**
+- Clear browser cookies
+- Logout and login again
+- Check `JWT_SECRET` is set correctly
+
+### Frontend Issues
+
+**API calls failing**
+- Verify `VITE_API_URL` in `.env`
+- Check backend is running on correct port
+- Clear browser cache and cookies
+- Open DevTools Network tab to debug
+
+**Build issues**
+```bash
+# Clear node modules and reinstall
+rm -rf node_modules package-lock.json
 npm install
 npm run dev
 ```
 
 ---
 
-## 🔐 Authentication & Authorization
+## 📝 Environment Variables Reference
 
-- Users sign up and log in with email and password.  
-- On login, a JWT is returned and stored on the client (for example, in `localStorage`).  
-- All protected requests (create/edit/delete event, RSVP, leave) send `Authorization: Bearer <token>` in headers.  
-- The backend middleware validates the token and attaches the user to `req.user` before hitting controllers.
+### Server (.env)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | Server port | `3000` |
+| `NODE_ENV` | Environment | `development` or `production` |
+| `MONGO_URI` | MongoDB connection string | `mongodb+srv://...` |
+| `JWT_SECRET` | Secret for JWT signing | `your-secret-key` |
+| `CLIENT_URL` | Frontend URL | `http://localhost:5173` |
+| `SMTP_USER` | Email for password resets | `email@gmail.com` |
+| `SMTP_PASS` | App password for SMTP | `xxxx xxxx xxxx xxxx` |
 
----
-
-## 📅 Core User Flows
-
-1. **Browse events**
-   - Open the dashboard to see all upcoming events.
-   - Optionally filter events by category and view details on a dedicated page.
-
-2. **Create and manage events**
-   - Authenticated users can create new events with capacity and image.
-   - Owners can edit event details or delete their events.
-
-3. **RSVP to events**
-   - Logged‑in users can RSVP to join events if capacity allows.
-   - Users can leave events they joined, freeing a slot.
-   - User dashboard shows "My Events" and "Events I joined".
-
-4. **Password reset**
-   - Users who forget their password can request a reset link.
-   - Using the emailed token, they can set a strong new password that passes the strength rules.
+### Client (.env)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API URL | `http://localhost:3000` |
 
 ---
 
-## Project Owner
+## 🚀 Deployment
+
+### Frontend (Vercel)
+```bash
+npm install -g vercel
+vercel login
+vercel deploy
+```
+
+### Backend (Render/Railway)
+1. Create account on Render or Railway
+2. Connect GitHub repository
+3. Set environment variables
+4. Deploy
+
+---
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+---
+
+## 👨‍💻 Author
 
 **Samiksha Lone**
 
-- Email: samikshalone2@gmail.com
-- GitHub: https://github.com/Samiksha-Lone
+- Email: [samikshalone2@gmail.com](mailto:samikshalone2@gmail.com)
+- GitHub: [@Samiksha-Lone](https://github.com/Samiksha-Lone)
+- LinkedIn: [Samiksha Lone](https://linkedin.com/in/samiksha-lone)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit issues and enhancement requests.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📞 Support
+
+For support, please open an issue on GitHub or reach out via email.
+
+---
+
+**Last Updated:** January 2026

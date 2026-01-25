@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React from 'react';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
@@ -12,6 +13,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
 
   handleReload = () => {
@@ -27,7 +29,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6 transition-colors duration-500 bg-white dark:bg-neutral-950">
           <div className="w-full max-w-md p-8 text-center transition-all duration-500 bg-white border shadow-lofted hover:shadow-premium dark:bg-neutral-900 rounded-2xl border-neutral-200 dark:border-neutral-800">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-6 rounded-full bg-red-50 dark:bg-red-900/10 text-red-500">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-6 text-red-500 rounded-full bg-red-50 dark:bg-red-900/10">
               <AlertTriangle size={32} />
             </div>
             
@@ -41,7 +43,7 @@ class ErrorBoundary extends React.Component {
             <div className="flex flex-col gap-3">
               <button
                 onClick={this.handleReload}
-                className="flex items-center justify-center gap-2 px-6 py-3 font-bold text-white transition-all bg-indigo-600 rounded-xl hover:bg-indigo-700 active:scale-95 shadow-lg shadow-indigo-500/20"
+                className="flex items-center justify-center gap-2 px-6 py-3 font-bold text-white transition-all bg-indigo-600 shadow-lg rounded-xl hover:bg-indigo-700 active:scale-95 shadow-indigo-500/20"
               >
                 <RefreshCw size={18} />
                 Reload Page
@@ -57,8 +59,8 @@ class ErrorBoundary extends React.Component {
             </div>
 
             {process.env.NODE_ENV === 'development' && (
-              <div className="mt-8 p-4 text-left rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 overflow-auto max-h-40">
-                <p className="text-xs font-mono text-red-500">
+              <div className="p-4 mt-8 overflow-auto text-left border rounded-lg bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 max-h-40">
+                <p className="font-mono text-xs text-red-500">
                   {this.state.error && this.state.error.toString()}
                 </p>
               </div>

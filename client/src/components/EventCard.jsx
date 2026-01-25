@@ -46,9 +46,18 @@ export default function EventCard({
       </div>
 
       <div className="flex flex-col flex-1 p-6">
-        <h3 className="mb-4 text-xl font-bold text-neutral-900 dark:text-white line-clamp-2">
-          {title}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl font-bold text-neutral-900 dark:text-white line-clamp-2 flex-1">
+            {title}
+          </h3>
+          <span className={`ml-2 px-2.5 py-1 text-xs font-bold rounded-full whitespace-nowrap ${
+            event.eventType === 'online'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+              : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+          }`}>
+            {event.eventType === 'online' ? '🌐 Online' : '📍 In-Person'}
+          </span>
+        </div>
 
         <div className="mb-4 space-y-2">
           {date && (
@@ -71,7 +80,27 @@ export default function EventCard({
               </p>
             </div>
           )}
-          {location && (
+          {event.eventType === 'online' && event.meetingPlatform ? (
+            <div className="flex items-center gap-3">
+              <svg
+                className="flex-shrink-0 w-4 h-4 text-indigo-600 dark:text-indigo-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-sm text-neutral-600 dark:text-gray-300 capitalize">
+                {event.meetingPlatform.replace('-', ' ')}
+              </p>
+            </div>
+          ) : null}
+          {event.eventType === 'offline' && location && (
             <div className="flex items-center gap-3">
               <svg
                 className="flex-shrink-0 w-4 h-4 text-indigo-600 dark:text-indigo-400"

@@ -61,7 +61,6 @@ async function loginUser(req, res) {
     try {
         const { email, password } = req.body;
 
-        console.log('Login attempt for email:', email);
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
@@ -70,18 +69,14 @@ async function loginUser(req, res) {
         const user = await userModel.findOne({email});
 
         if(!user) {
-            console.log('User not found:', email);
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        console.log('User found:', user.email);
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
-        console.log('Password valid:', isPasswordValid);
 
         if(!isPasswordValid) {
-            console.log('Password mismatch for user:', email);
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
@@ -98,7 +93,6 @@ async function loginUser(req, res) {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
 
-        console.log('Login successful for:', email);
 
         res.status(200).json({ 
             message: 'User logged in successfully', 
@@ -126,7 +120,7 @@ async function getMe(req, res) {
   res.json({
     user: req.user
       ? {
-          id: req.user.id || req.user._id,
+          id: req.user._id,
           name: req.user.name,
           email: req.user.email,
         }
@@ -159,16 +153,39 @@ async function forgotPassword(req, res) {
         );
 
         const resetLink = `${CLIENT_URL}/reset-password/${resetToken}`;
-        await sendResetEmail(user.email, resetLink);
-
-        return res.json({
-            message: 'Password reset link has been sent to your email'
-        })
+        
+        try {
+            await sendResetEmail(user.email, resetLink);
+            return res.json({
+                message: 'Password reset link has been sent to your email'
+            });
+        } catch (emailError) {
+            console.error('Email sending error:', emailError);
+            
+            // In development, still return success if email fails
+            if (process.env.NODE_ENV === 'development') {
+                console.log('\n🔗 For development testing, use this reset link:');
+                console.log(`${resetLink}\n`);
+                return res.json({
+                    message: 'Password reset link generated (check server console for the link in development)',
+                    devNote: 'Reset link logged to server console. Copy it from there.'
+                });
+            }
+            
+            // Production error
+            return res.status(200).json({ 
+                message: 'Your request was processed, but the email service is currently unavailable. Please try again later.',
+                warning: 'Email service error'
+            });
+        }
 
     } catch (error) {
 
         console.error('forgotPassword error:', error);
-        return res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ 
+            message: 'Server error',
+            error: error.message 
+        });
 
     }
 }
@@ -219,7 +236,6 @@ async function resetPassword(req, res) {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
-      console.log('jwt verify error:', err.message);
       return res
         .status(400)
         .json({ message: 'Reset link is invalid or has expired' });

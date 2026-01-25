@@ -6,21 +6,18 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import { FiUser, FiMail, FiLock } from 'react-icons/fi';
-import { api } from '../utils/api';
 import { validateName, validateEmail, validateConfirm, passwordStrength } from '../utils/validation';
-import { useAppContext } from '../context/AppProvider';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { login, user } = useAppContext();
+  const { register, loading: authLoading, clearError } = useAuth();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
 
 
@@ -52,52 +49,23 @@ export default function Signup() {
     const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-      const formData = {
+      const userData = {
         name: name.trim(),
         email: email.trim(),
         password: password
       };
 
-      setLoading(true);
       setErrors({});
       setSuccess('');
-      try {
-        const response = await api.post('/auth/register', formData);
+      clearError();
 
-        if (response.status === 201 || response.status === 200) {
-          const userData = response.data.user || response.data;
-          
-          const userToSave = {
-            id: userData.id || userData._id,
-            name: userData.name || formData.name,
-            email: userData.email || formData.email,
-            ...userData
-          };
-          
-          login(userToSave);
-          setSuccess('Registered successfully! Redirecting to dashboard...');
-          setErrors({});
-          setTimeout(() => navigate('/dashboard'), 1500);
-        } else {
-          setErrors({ submit: 'Registration failed. Please try again.' });
-          setSuccess('');
-        }
-      } catch (error) {
-        
-        let errorMsg = error.response?.data?.message || error.message || 'Registration failed';
-        
-        if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
-          errorMsg = 'Email already registered. Please use a different email or login.';
-        } else if (error.response?.status === 400) {
-          errorMsg = 'Invalid credentials. Please check your information.';
-        } else if (error.response?.status === 500) {
-          errorMsg = 'Server error. Please try again later.';
-        }
-        
-        setErrors({ submit: errorMsg });
-        setSuccess('');
-      } finally {
-        setLoading(false);
+      const result = await register(userData);
+
+      if (result.success) {
+        setSuccess('Registered successfully! Redirecting to dashboard...');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } else {
+        setErrors({ submit: result.error });
       }
     } else {
       setErrors(newErrors);
@@ -105,15 +73,6 @@ export default function Signup() {
     }
   };
 
-  const strength = passwordStrength(password);
-  const { theme } = useTheme();
-
-  const handleNavigate = (page) => {
-    navigate(page === 'dashboard' ? '/dashboard' : `/${page}`);
-  };
-
-  const handleLogout = () => {
-  };
 
   return (
     <div className="min-h-screen overflow-hidden transition-colors duration-500 bg-white dark:bg-neutral-950">
@@ -195,22 +154,7 @@ export default function Signup() {
                 required
               />
 
-              <div className="pt-1">
-                <div className="w-full h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      strength.label === 'Weak'
-                        ? 'bg-red-500'
-                        : strength.label === 'Fair'
-                        ? 'bg-yellow-500'
-                        : strength.label === 'Good'
-                        ? 'bg-blue-500'
-                        : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${strength.percent}%` }}
-                  />
-                </div>
-              </div>
+
 
               <Input
                 id="confirmPassword"
@@ -234,9 +178,9 @@ export default function Signup() {
                 variant="primary"
                 size="md"
                 className="w-full mt-4 group"
-                disabled={loading}
+                disabled={authLoading}
               >
-                {loading ? (
+                {authLoading ? (
                   <>
                     <svg className="inline w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

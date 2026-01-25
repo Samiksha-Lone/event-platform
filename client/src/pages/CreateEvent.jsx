@@ -2,7 +2,8 @@ import { useState } from "react";
 import { api } from '../utils/api';
 import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "../context/AppProvider";
+import { useAuth } from "../context/AuthContext";
+import { useEvents } from '../hooks/useEvents';
 import Navbar from "../components/Navbar";
 import { useToast } from "../context/ToastContext";
 import AiDescriptionModal from "../components/AiDescriptionModal";
@@ -11,7 +12,8 @@ import { Sparkles, Palette } from "lucide-react";
 
 const CreateEvent = () => {
   const navigate = useNavigate();
-  const { addEvent, user } = useAppContext();
+  const { user } = useAuth();
+  const { addEvent } = useEvents();
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,11 @@ const CreateEvent = () => {
     capacity: "",
     date: "",
     time: "",
+    eventType: "offline",
     location: "",
+    meetingPlatform: "zoom",
+    meetingLink: "",
+    meetingPassword: "",
     imageFile: null,
     imageUrl: "",
   });
@@ -50,6 +56,10 @@ const CreateEvent = () => {
       else if (text.match(/music|concert|band|dj|song|dance/)) suggested = "music";
       else if (text.match(/sports|football|soccer|gym|fitness|match/)) suggested = "sports";
       else if (text.match(/food|eat|cook|chef|dinner|restaurant/)) suggested = "food";
+      else if (text.match(/health|gym|yoga|fitness|medical|doctor|wellness|mental/)) suggested = "health";
+      else if (text.match(/learn|school|college|workshop|study|class|course|training/)) suggested = "education";
+      else if (text.match(/workshop|hands-on|build|create|seminar/)) suggested = "workshop";
+      else if (text.match(/party|meet|social|hangout|gathering|friends/)) suggested = "social";
       
       setForm(prev => ({ ...prev, category: suggested }));
       setIsDetectingCategory(false);
@@ -75,6 +85,10 @@ const CreateEvent = () => {
       music: "Evening (7:00 PM) creates the best vibe.",
       sports: "Weekend mornings (9:00 AM) are peak energy.",
       food: "Lunchtime (12:30 PM) or Dinner (7:30 PM) is ideal.",
+      health: "Morning (8:00 AM) is best for health activities.",
+      education: "Morning (9:00 AM) is ideal for learning.",
+      workshop: "Morning (10:00 AM) provides great focus for workshops.",
+      social: "Evening (6:00 PM) is the best time for social events.",
       other: "Afternoons (2:00 PM) usually work for most."
     };
     return suggestions[form.category] || suggestions.other;
@@ -90,18 +104,20 @@ const CreateEvent = () => {
       !form.capacity ||
       !form.date ||
       !form.time ||
-      !form.location ||
+      !form.eventType ||
+      (form.eventType === "offline" && !form.location) ||
+      (form.eventType === "online" && (!form.meetingPlatform || !form.meetingLink)) ||
       (imageMode === "file" && !form.imageFile) ||
       (imageMode === "url" && !form.imageUrl)
     ) {
-      addToast("Please fill all fields and provide an event image.", "error");
+      addToast("Please fill all required fields and provide an event image.", "error");
       setLoading(false);
       return;
     }
 
     try {
 
-      const token = localStorage.getItem('authToken');
+      const token = sessionStorage.getItem('authToken');
       if (!token) {
         addToast('Please login again before creating an event.', 'error');
         setLoading(false);
@@ -118,31 +134,52 @@ const CreateEvent = () => {
         formdata.append("capacity", form.capacity);
         formdata.append("date", form.date);
         formdata.append("time", form.time);
-        formdata.append("location", form.location);
+        formdata.append("eventType", form.eventType);
         formdata.append("image", form.imageFile);
+        
+        if (form.eventType === "offline") {
+          formdata.append("location", form.location);
+        } else {
+          formdata.append("meetingPlatform", form.meetingPlatform);
+          formdata.append("meetingLink", form.meetingLink);
+          if (form.meetingPassword) {
+            formdata.append("meetingPassword", form.meetingPassword);
+          }
+        }
 
         response = await api.post('/event/create', formdata, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
+        const eventData = {
+          title: form.title,
+          description: form.description,
+          category: form.category,
+          capacity: form.capacity,
+          date: form.date,
+          time: form.time,
+          eventType: form.eventType,
+          imageUrl: form.imageUrl,
+        };
+
+        if (form.eventType === "offline") {
+          eventData.location = form.location;
+        } else {
+          eventData.meetingPlatform = form.meetingPlatform;
+          eventData.meetingLink = form.meetingLink;
+          if (form.meetingPassword) {
+            eventData.meetingPassword = form.meetingPassword;
+          }
+        }
+
         response = await api.post(
           '/event/create',
-          {
-            title: form.title,
-            description: form.description,
-            category: form.category,
-            capacity: form.capacity,
-            date: form.date,
-            time: form.time,
-            location: form.location,
-            imageUrl: form.imageUrl,
-          },
+          eventData,
           { withCredentials: true ,
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
-            
         );
       }
 
@@ -150,6 +187,7 @@ const CreateEvent = () => {
       const eventData = {
         ...response.data.event,
         id: mongoId,
+        owner: user?.id || user?._id || response.data.event.owner,
         time: form.time,
         category: form.category,
         attending: 1,
@@ -288,6 +326,10 @@ const CreateEvent = () => {
                       <option value="music">Music</option>
                       <option value="sports">Sports</option>
                       <option value="food">Food</option>
+                      <option value="health">Health</option>
+                      <option value="education">Education</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="social">Social</option>
                       <option value="other">Other</option>
                     </select>
                   </div>
@@ -358,24 +400,114 @@ const CreateEvent = () => {
 
                 <div>
                   <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
-                    Location <span className="text-red-500">*</span>
+                    Event Type <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <MapPin
-                      size={20}
-                      className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
-                    />
-                    <input
-                      type="text"
-                      name="location"
-                      value={form.location}
-                      onChange={handleChange}
-                      placeholder="e.g., New York Convention Center"
-                      className="w-full px-4 py-2.5 pl-12 text-base transition-all duration-200 bg-white border-2 dark:bg:white/10 border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    />
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, eventType: "offline" }))}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
+                        form.eventType === "offline"
+                          ? "bg-indigo-600 text-white shadow-lg"
+                          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border-2 border-neutral-300 dark:border-neutral-700"
+                      }`}
+                    >
+                      <MapPin size={18} className="inline mr-2" />
+                      In-Person
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, eventType: "online" }))}
+                      className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
+                        form.eventType === "online"
+                          ? "bg-indigo-600 text-white shadow-lg"
+                          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white border-2 border-neutral-300 dark:border-neutral-700"
+                      }`}
+                    >
+                      <LinkIcon size={18} className="inline mr-2" />
+                      Online
+                    </button>
                   </div>
                 </div>
+
+                {form.eventType === "offline" ? (
+                  <div>
+                    <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
+                      Location <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin
+                        size={20}
+                        className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        name="location"
+                        value={form.location}
+                        onChange={handleChange}
+                        placeholder="e.g., New York Convention Center"
+                        className="w-full px-4 py-2.5 pl-12 text-base transition-all duration-200 bg-white border-2 dark:bg:white/10 border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
+                        Meeting Platform <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="meetingPlatform"
+                        value={form.meetingPlatform}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 text-base transition-all duration-200 bg-white border-2 dark:bg-white/10 border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                      >
+                        <option value="zoom">Zoom</option>
+                        <option value="google-meet">Google Meet</option>
+                        <option value="microsoft-teams">Microsoft Teams</option>
+                        <option value="webex">Webex</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
+                        Meeting Link <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <LinkIcon
+                          size={20}
+                          className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2 text-neutral-500 dark:text-gray-400"
+                        />
+                        <input
+                          type="url"
+                          name="meetingLink"
+                          value={form.meetingLink}
+                          onChange={handleChange}
+                          placeholder="e.g., https://zoom.us/j/123456789"
+                          className="w-full px-4 py-2.5 pl-12 text-base transition-all duration-200 bg-white border-2 dark:bg:white/10 border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">
+                        Meeting Password <span className="text-gray-400">(Optional)</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="meetingPassword"
+                        value={form.meetingPassword}
+                        onChange={handleChange}
+                        placeholder="Leave empty if no password required"
+                        className="w-full px-4 py-2.5 text-base transition-all duration-200 bg-white border-2 dark:bg:white/10 border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block mb-1.5 text-sm font-bold transition-colors duration-500 text-neutral-700 dark:text-gray-300">

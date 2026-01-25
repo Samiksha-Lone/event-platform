@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Ghost, ArrowLeft } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import { useAppContext } from '../context/AppProvider';
+import { useAuth } from '../context/AuthContext';
 
 export default function NotFound() {
   const navigate = useNavigate();
-  const { user } = useAppContext();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen transition-colors duration-500 bg-white dark:bg-neutral-950">

@@ -17,7 +17,7 @@ async function authenticateToken(req, res, next) {
         const user = await userModel.findById(verified.id).select('-password');
 
         req.user = {
-            id: user._id,
+            _id: user._id,
             name: user.name,
             email: user.email,
         };

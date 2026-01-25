@@ -3,14 +3,17 @@ import { useState, useEffect } from 'react';
 import { api } from '../utils/api';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
-import { useAppContext } from '../context/AppProvider';
+import { useAuth } from '../context/AuthContext';
+import { useEvents } from '../hooks/useEvents';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
+import { isUserRsvped, isEventFull, getAvailableSpots } from '../utils/rsvpHelper';
 
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAppContext();
+  const { user, logout } = useAuth();
+  const { rsvp, cancelRsvp } = useEvents();
   const { theme, toggleTheme } = useTheme();
   const { addToast } = useToast();
 
@@ -36,7 +39,11 @@ export default function EventDetails() {
             description: ev.description,
             date: ev.date ? new Date(ev.date).toLocaleDateString() : 'N/A',
             time: ev.time || '09:00',
+            eventType: ev.eventType || 'offline',
             location: ev.location || 'TBA',
+            meetingPlatform: ev.meetingPlatform || '',
+            meetingLink: ev.meetingLink || '',
+            meetingPassword: ev.meetingPassword || '',
             capacity: ev.capacity || 0,
             attending: ev.rsvps?.length || 0,
             organizer: ev.owner?.name || 'Unknown organizer',
@@ -57,6 +64,13 @@ export default function EventDetails() {
 
     if (id) fetchEvent();
   }, [id]);
+
+  // Debug logging - moved before conditional returns to follow React hooks rules
+  const currentUserId = user?.id || user?._id;
+  const isJoined = event ? isUserRsvped(event, currentUserId) : false;
+  const isFull = event ? isEventFull(event) : false;
+  const availableSpots = event ? getAvailableSpots(event) : 0;
+
 
   if (loading) {
     return (
@@ -89,25 +103,34 @@ export default function EventDetails() {
   const handleRsvp = async () => {
     try {
       setRsvpLoading(true);
-      const res = await api.post(`/event/${event.id}/rsvp`);
+      const result = await rsvp(event.id);
 
-      if (res.data?.attendingCount !== undefined) {
-        setEvent(prev => ({
-          ...prev,
-          attending: res.data.attendingCount,
-        }));
+      if (result.success) {
+        const response = await api.get(`/event/${event.id}`);
+        if (response.data?.event) {
+          const ev = response.data.event;
+          
+          setEvent({
+            ...ev,
+            id: ev._id || event.id,
+            title: ev.title,
+            description: ev.description,
+            date: ev.date ? new Date(ev.date).toLocaleDateString() : 'N/A',
+            time: ev.time || '09:00',
+            location: ev.location || 'TBA',
+            capacity: ev.capacity || 0,
+            attending: ev.rsvps?.length || 0,
+            organizer: ev.owner?.name || 'Unknown organizer',
+            image: ev.image || '',
+          });
+        }
+        addToast('RSVP successful', 'success');
       } else {
-        setEvent(prev => ({ ...prev, attending: prev.attending + 1 }));
+        addToast(result.error || 'Failed to RSVP', 'error');
       }
-
-      addToast(res.data?.message || 'RSVP successful', 'success');
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        (err.response?.status === 401
-          ? 'Please log in to RSVP.'
-          : 'Could not complete RSVP. Please try again.');
-      addToast(msg, 'error');
+      console.error('[EventDetails] RSVP Error:', err);
+      addToast('Could not complete RSVP. Please try again.', 'error');
     } finally {
       setRsvpLoading(false);
     }
@@ -116,28 +139,34 @@ export default function EventDetails() {
   const handleCancel = async () => {
     try {
       setRsvpLoading(true);
-      const res = await api.delete(`/event/${event.id}/rsvp`);
+      const result = await cancelRsvp(event.id);
 
-      if (res.data?.attendingCount !== undefined) {
-        setEvent(prev => ({
-          ...prev,
-          attending: res.data.attendingCount,
-        }));
+      if (result.success) {
+        // Fetch fresh event data from backend to sync properly
+        const response = await api.get(`/event/${event.id}`);
+        if (response.data?.event) {
+          const ev = response.data.event;
+          setEvent({
+            ...ev,
+            id: ev._id || event.id,
+            title: ev.title,
+            description: ev.description,
+            date: ev.date ? new Date(ev.date).toLocaleDateString() : 'N/A',
+            time: ev.time || '09:00',
+            location: ev.location || 'TBA',
+            capacity: ev.capacity || 0,
+            attending: ev.rsvps?.length || 0,
+            organizer: ev.owner?.name || 'Unknown organizer',
+            image: ev.image || '',
+          });
+        }
+        addToast('RSVP cancelled', 'info');
       } else {
-        setEvent(prev => ({
-          ...prev,
-          attending: Math.max(0, prev.attending - 1),
-        }));
+        addToast(result.error || 'Failed to cancel RSVP', 'error');
       }
-
-      addToast(res.data?.message || 'RSVP cancelled', 'info');
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        (err.response?.status === 401
-          ? 'Please log in first.'
-          : 'Could not cancel RSVP. Please try again.');
-      addToast(msg, 'error');
+      addToast('Could not cancel RSVP. Please try again.', 'error');
     } finally {
       setRsvpLoading(false);
     }
@@ -247,24 +276,81 @@ export default function EventDetails() {
 
               <div className="p-6 bg-white border rounded-xl border-neutral-200 dark:border-neutral-800 dark:bg-neutral-900">
                 <h3 className="mb-3 text-base font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">
-                  Location
+                  {event.eventType === 'online' ? 'Meeting Details' : 'Location'}
                 </h3>
-                <div className="flex items-start gap-4">
-                  <svg
-                    className="flex-shrink-0 w-6 h-6 mt-1 text-indigo-600 dark:text-indigo-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <p className="text-base text-neutral-900 dark:text-neutral-50">
-                    {event.location}
-                  </p>
-                </div>
+                {event.eventType === 'online' ? (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <svg
+                        className="flex-shrink-0 w-6 h-6 mt-1 text-indigo-600 dark:text-indigo-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M10.895 2.553a1 1 0 00-1.79 0l-.894 4.468a1 1 0 001.97.242l.894-4.468zM8.387 8.387a1 1 0 011.414 0l2.121 2.121a1 1 0 11-1.414 1.414l-2.121-2.121a1 1 0 010-1.414zM6.829 10.986a1 1 0 011.415-1.415l2.12 2.121a1 1 0 11-1.415 1.415l-2.12-2.121zM4.222 14.308a1 1 0 011.415-1.414l2.12 2.121a1 1 0 01-1.415 1.414l-2.12-2.121z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="mb-1 text-sm text-neutral-600 dark:text-neutral-400">Platform</p>
+                        <p className="text-base font-semibold capitalize text-neutral-900 dark:text-neutral-50">
+                          {event.meetingPlatform?.replace('-', ' ')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <svg
+                        className="flex-shrink-0 w-6 h-6 mt-1 text-indigo-600 dark:text-indigo-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M14.243 5.757a6 6 0 10-.986 9.284 1 1 0 111.087 1.635A8 8 0 1013.5 1.5a1 1 0 01.866 1.504l-5.054 5.053a1 1 0 010 1.414l.707.707a1 1 0 010 1.414l-.707.707a1 1 0 010 1.414z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="mb-1 text-sm text-neutral-600 dark:text-neutral-400">Meeting Link</p>
+                        <a
+                          href={event.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-semibold text-indigo-600 break-all dark:text-indigo-400 hover:underline"
+                        >
+                          Join Meeting
+                        </a>
+                      </div>
+                    </div>
+                    {event.meetingPassword && (
+                      <div className="flex items-start gap-4 pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                        <svg
+                          className="flex-shrink-0 w-6 h-6 mt-1 text-indigo-600 dark:text-indigo-400"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                        <div className="flex-1">
+                          <p className="mb-1 text-sm text-neutral-600 dark:text-neutral-400">Password</p>
+                          <p className="font-mono text-base text-neutral-900 dark:text-neutral-50">
+                            {event.meetingPassword}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-4">
+                    <svg
+                      className="flex-shrink-0 w-6 h-6 mt-1 text-indigo-600 dark:text-indigo-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <p className="text-base text-neutral-900 dark:text-neutral-50">
+                      {event.location}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="p-6 bg-white border rounded-xl border-neutral-200 dark:border-neutral-800 dark:bg-neutral-900">
@@ -286,38 +372,43 @@ export default function EventDetails() {
             <div className="flex flex-col h-full space-y-6">
               <div className="flex-1 p-6 border border-indigo-200 rounded-xl bg-indigo-50 dark:border-indigo-900 dark:bg-neutral-900">
                 <h3 className="mb-3 text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                  Join This Event
+                  {isJoined ? 'You\'re Going!' : 'Join This Event'}
                 </h3>
                 <p className="mb-4 text-base text-neutral-600 dark:text-neutral-400">
-                  {Math.max(0, capacity - attending)} spots remaining
+                  {availableSpots > 0 ? `${availableSpots} spots remaining` : 'Event is full'}
                 </p>
                 <div className="flex flex-col gap-2.5">
-                  <Button
-                    onClick={handleRsvp}
-                    variant="primary"
-                    size="md"
-                    className="w-full"
-                    disabled={rsvpLoading}
-                  >
-                    {rsvpLoading ? (
-                      <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                    ) : (
-                      'RSVP'
-                    )}
-                  </Button>
-                  <Button
-                    onClick={handleCancel}
-                    variant="secondary"
-                    size="md"
-                    className="w-full"
-                    disabled={rsvpLoading}
-                  >
-                    {rsvpLoading ? (
-                      <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                    ) : (
-                      'Cancel RSVP'
-                    )}
-                  </Button>
+                  {!isJoined ? (
+                    <Button
+                      onClick={handleRsvp}
+                      variant="primary"
+                      size="md"
+                      className="w-full"
+                      disabled={rsvpLoading || isFull}
+                    >
+                      {rsvpLoading ? (
+                        <div className="w-5 h-5 mx-auto border-2 border-indigo-400 rounded-full border-t-transparent animate-spin" />
+                      ) : isFull ? (
+                        'Event Full'
+                      ) : (
+                        'RSVP Now'
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleCancel}
+                      variant="danger"
+                      size="md"
+                      className="w-full"
+                      disabled={rsvpLoading}
+                    >
+                      {rsvpLoading ? (
+                        <div className="w-5 h-5 mx-auto border-2 border-red-400 rounded-full border-t-transparent animate-spin" />
+                      ) : (
+                        'Cancel RSVP'
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
 

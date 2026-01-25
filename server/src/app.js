@@ -7,13 +7,11 @@ const eventRoutes = require('./routes/event.routes');
 
 const app = express();
 
-app.use(express.json());
-app.use(cookieParser());
-
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173', 
 ];
 
+// Apply CORS before other middleware
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.some(allowed => allowed instanceof RegExp ? allowed.test(origin) : origin === allowed)) {
@@ -24,6 +22,9 @@ app.use(cors({
   },
   credentials: true
 }));
+
+app.use(express.json());
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
     res.send('Hello, World!');

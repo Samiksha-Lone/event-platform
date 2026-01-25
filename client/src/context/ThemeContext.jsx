@@ -1,6 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react';
 
 export const ThemeContext = createContext();
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
@@ -8,6 +10,7 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved === 'light' || saved === 'dark') setTheme(saved);
   }, []);
 
