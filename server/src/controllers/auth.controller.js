@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const userModel = require('../models/user.model');
 const {sendResetEmail} = require('../utils/mailer');
+const { verify2FAToken } = require('./2fa.controller');
+const { logAuthEvent, logSecurityEvent } = require('../middlewares/logger.middleware');
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 async function registerUser(req, res) {
@@ -59,8 +61,7 @@ async function registerUser(req, res) {
 
 async function loginUser(req, res) {
     try {
-        const { email, password } = req.body;
-
+        const { email, password, twoFactorToken } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
@@ -69,16 +70,61 @@ async function loginUser(req, res) {
         const user = await userModel.findOne({email});
 
         if(!user) {
+            logSecurityEvent('LOGIN_FAILED', { email, reason: 'User not found' });
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
+        if (user.isLocked) {
+            logSecurityEvent('LOGIN_BLOCKED', { 
+                userId: user._id, 
+                email, 
+                reason: 'Account locked' 
+            });
+            return res.status(423).json({ 
+                message: 'Account is locked due to too many failed login attempts. Please try again later.' 
+            });
+        }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
-
         if(!isPasswordValid) {
+            await user.incLoginAttempts();
+            logSecurityEvent('LOGIN_FAILED', { 
+                userId: user._id, 
+                email, 
+                reason: 'Invalid password',
+                attempts: user.loginAttempts + 1
+            });
             return res.status(400).json({ message: 'Invalid email or password' });
         }
+
+        if (user.twoFactorEnabled) {
+            if (!twoFactorToken) {
+                return res.status(200).json({ 
+                    message: '2FA required',
+                    requires2FA: true,
+                    userId: user._id
+                });
+            }
+
+            const is2FAValid = verify2FAToken(user.twoFactorSecret, twoFactorToken);
+            if (!is2FAValid) {
+                await user.incLoginAttempts();
+                logSecurityEvent('2FA_FAILED', { 
+                    userId: user._id, 
+                    email,
+                    attempts: user.loginAttempts + 1
+                });
+                return res.status(400).json({ message: 'Invalid 2FA token' });
+            }
+        }
+
+        if (user.loginAttempts > 0 || user.lockUntil) {
+            await user.resetLoginAttempts();
+        }
+
+        user.lastLogin = new Date();
+        await user.save();
 
         const token = jwt.sign({
             id: user._id,
@@ -89,17 +135,19 @@ async function loginUser(req, res) {
         res.cookie("token", token, {
             httpOnly: true,
             sameSite: 'lax',
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
 
+        logAuthEvent('LOGIN_SUCCESS', user._id, { email });
 
         res.status(200).json({ 
             message: 'User logged in successfully', 
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                twoFactorEnabled: user.twoFactorEnabled
             }, 
             token 
         });
@@ -161,8 +209,7 @@ async function forgotPassword(req, res) {
             });
         } catch (emailError) {
             console.error('Email sending error:', emailError);
-            
-            // In development, still return success if email fails
+ 
             if (process.env.NODE_ENV === 'development') {
                 console.log('\n🔗 For development testing, use this reset link:');
                 console.log(`${resetLink}\n`);
@@ -172,7 +219,6 @@ async function forgotPassword(req, res) {
                 });
             }
             
-            // Production error
             return res.status(200).json({ 
                 message: 'Your request was processed, but the email service is currently unavailable. Please try again later.',
                 warning: 'Email service error'
@@ -197,18 +243,15 @@ async function passwordStrength(password = '') {
 
   let score = 0;
 
-  // base length rule
   if (password.length >= 8) score += 1;
 
-  // extra rules
   if (/[A-Z]/.test(password)) score += 1;
   if (/[0-9]/.test(password)) score += 1;
 
-  // SPECIAL CHARACTERS – REQUIRED FOR MAX SCORE
   const hasSpecial = /[^A-Za-z0-9]/.test(password);
-  if (hasSpecial) score += 2; // give them highest weight
+  if (hasSpecial) score += 2; 
 
-  const maxScore = 5; // 1 + 1 + 1 + 2
+  const maxScore = 5; 
   const labels = ['Very weak', 'Weak', 'Medium', 'Strong', 'Very strong'];
   const colors = ['bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-green-600'];
   return {
@@ -246,7 +289,6 @@ async function resetPassword(req, res) {
       return res.status(400).json({ message: 'Invalid reset link' });
     }
 
-    // use the validated password from body
     const hashed = await bcrypt.hash(password, 10);
     user.password = hashed;
     await user.save();
@@ -257,7 +299,6 @@ async function resetPassword(req, res) {
     return res.status(500).json({ message: 'Server error' });
   }
 }
-
 
 module.exports = {
     registerUser,

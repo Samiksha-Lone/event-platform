@@ -1,8 +1,7 @@
 @import "tailwindcss";
-/* Enable Tailwind dark: variant with .dark on <html> */
+
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Base theme (light + dark) */
 @layer base {
   html {
     width: 100%;
@@ -15,8 +14,8 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #ffffff;   /* light bg */
-    color: #111827;              /* light text */
+    background-color: #ffffff;   
+    color: #111827;              
     font-size: 15px;
   }
 
@@ -36,7 +35,6 @@
     min-height: 100vh;
   }
 
-  /* Light mode borders */
   *,
   *::before,
   *::after {
@@ -44,9 +42,8 @@
     box-sizing: border-box;
   }
 
-  /* Dark mode overrides (no global *) */
   html.dark {
-    background-color: #020617; /* neutral-950 */
+    background-color: #020617; 
     color: #f9fafb;
     border-color: rgb(38 38 38 / 1);
   }
@@ -57,12 +54,10 @@
   }
 }
 
-/* Smooth transitions for theme switching */
 * {
   @apply transition-colors duration-300;
 }
 
-/* Component-level theme surfaces (use .dark on html to switch) */
 @layer components {
   .page-wrapper {
     @apply min-h-screen bg-white text-neutral-900;
@@ -155,16 +150,15 @@
     @apply text-yellow-300 bg-red-600;
   }
 
-  /* Alerts and form helpers */
   .alert-success {
-    @apply p-4 mb-3 text-green-800 border border-green-200 shadow-sm rounded-lg bg-green-50;
+    @apply p-4 mb-3 text-green-800 border border-green-200 rounded-lg shadow-sm bg-green-50;
   }
   .dark .alert-success {
     @apply text-green-200 border-green-600 bg-green-500/10;
   }
 
   .alert-error {
-    @apply p-4 mb-3 text-red-800 border border-red-200 shadow-sm rounded-lg bg-red-50;
+    @apply p-4 mb-3 text-red-800 border border-red-200 rounded-lg shadow-sm bg-red-50;
   }
   .dark .alert-error {
     @apply text-red-200 border-red-600 bg-red-500/10;
@@ -194,7 +188,6 @@
     @apply text-indigo-400;
   }
 
-  /* Layout spacing helpers (theme-safe) */
   .container-padding {
     @apply w-full px-4 sm:px-6 lg:px-8;
   }
@@ -208,7 +201,7 @@
   }
 
   .page-heading {
-    @apply mb-2 text-2xl font-black sm:text-3xl text-neutral-900 tracking-tight;
+    @apply mb-2 text-2xl font-black tracking-tight sm:text-3xl text-neutral-900;
     font-family: 'Outfit', sans-serif;
   }
   .dark .page-heading {
@@ -229,7 +222,6 @@
     @apply text-neutral-50;
   }
 
-  /* stat-card */
   .stat-card {
     @apply p-4 bg-white border text-neutral-900 border-neutral-200 rounded-xl hover:shadow-lg;
   }
@@ -282,7 +274,7 @@
   }
 
   .glass-surface {
-    @apply bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border border-white/20 dark:border-white/10;
+    @apply border bg-white/70 dark:bg-neutral-900/70 backdrop-blur-md border-white/20 dark:border-white/10;
   }
 
   @keyframes fade-in {

@@ -4,53 +4,55 @@ const multer = require('multer');
 
 const eventController = require('../controllers/event.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
+const { createEventLimiter } = require('../middlewares/rate-limiter.middleware');
+const { 
+  validateCreateEvent, 
+  validateUpdateEvent, 
+  validateEventId 
+} = require('../middlewares/validation.middleware');
 
 const upload = multer({
     storage: multer.memoryStorage()
 });
 
-// CREATE EVENT
 router.post('/create', 
-    authMiddleware.authenticateToken, 
-    upload.single('image'), 
-    eventController.createEvent); // post /api/event
+    authMiddleware.authenticateToken,
+    createEventLimiter,
+    upload.single('image'),
+    eventController.createEvent); 
 
-// GET ALL EVENTS
 router.get('/', 
-    // authMiddleware.authenticateToken,
     eventController.getEvents);
 
-// GET SINGLE EVENT BY ID
 router.get('/:id',
-    // authMiddleware.authenticateToken,
+    validateEventId,
     eventController.getEventById);
 
-// RSVP JOIN
 router.post(
   '/:id/rsvp',
   authMiddleware.authenticateToken,
+  validateEventId,
   eventController.rsvpEvent
 );
-
-// RSVP LEAVE
 router.delete(
   '/:id/rsvp',
   authMiddleware.authenticateToken,
+  validateEventId,
   eventController.unrsvpEvent
 );
 
-// UPDATE EVENT (only owner)
 router.put(
   '/:id',
   authMiddleware.authenticateToken,
-  upload.single('eventImage'),
+  upload.single('image'),
+  validateUpdateEvent,
   eventController.updateEvent
 );
 
-// DELETE EVENT (only owner)
 router.delete(
   '/:id',
   authMiddleware.authenticateToken,
+  validateEventId,
   eventController.deleteEvent
 );
 

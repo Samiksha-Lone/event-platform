@@ -1,6 +1,5 @@
 var Imagekit = require("imagekit");
 
-// Initialize ImageKit only if credentials are provided
 var imagekit = null;
 
 if (process.env.IMAGEKIT_PUBLIC_KEY && process.env.IMAGEKIT_PRIVATE_KEY && process.env.IMAGEKIT_URL_ENDPOINT) {
@@ -12,7 +11,7 @@ if (process.env.IMAGEKIT_PUBLIC_KEY && process.env.IMAGEKIT_PRIVATE_KEY && proce
 }
 
 async function uploadFile(file, fileName) {
-    // If ImageKit is not configured, return a mock response
+    
     if (!imagekit) {
         console.warn('ImageKit not configured. Image upload skipped.');
         return {

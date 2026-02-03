@@ -18,7 +18,14 @@ const initialState = {
   events: [],
   loading: false,
   error: null,
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalEvents: 0,
+    hasMore: false
+  }
 };
+
 
 const getMemberId = (m) => {
   if (!m) return null;
@@ -31,7 +38,21 @@ function eventReducer(state, action) {
     case 'FETCH_START':
       return { ...state, loading: true, error: null };
     case 'FETCH_SUCCESS':
-      return { ...state, loading: false, events: normalizeEvents(action.payload), error: null };
+      return { 
+        ...state, 
+        loading: false, 
+        events: normalizeEvents(action.payload.events), 
+        pagination: action.payload.pagination || state.pagination,
+        error: null 
+      };
+    case 'FETCH_MORE_SUCCESS':
+      return {
+        ...state,
+        loading: false,
+        events: [...state.events, ...normalizeEvents(action.payload.events)],
+        pagination: action.payload.pagination || state.pagination,
+        error: null
+      };
     case 'FETCH_FAILURE':
       return { ...state, loading: false, error: action.payload };
     case 'ADD_EVENT':
@@ -106,18 +127,30 @@ export function EventProvider({ children }) {
   const [state, dispatch] = useReducer(eventReducer, initialState);
   const { user } = useAuth();
 
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = useCallback(async (page = 1, limit = 10, category = 'all', append = false) => {
     dispatch({ type: 'FETCH_START' });
     try {
       const token = sessionStorage.getItem('authToken');
-      const response = await api.get('/event', {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      if (category && category !== 'all') {
+        params.append('category', category);
+      }
+      
+      const response = await api.get(`/event?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = response.data;
-      const rawEvents = Array.isArray(data) ? data : data.events || [];
       
-      
-      dispatch({ type: 'FETCH_SUCCESS', payload: rawEvents });
+      dispatch({ 
+        type: append ? 'FETCH_MORE_SUCCESS' : 'FETCH_SUCCESS', 
+        payload: {
+          events: data.events || [],
+          pagination: data.pagination || {}
+        }
+      });
     } catch (err) {
       console.error('[EventContext] fetchEvents error:', err);
       dispatch({ type: 'FETCH_FAILURE', payload: err.message || 'Failed to fetch events' });

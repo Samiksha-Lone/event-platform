@@ -17,7 +17,6 @@ export default function ForgotPassword() {
       if (res.data.warning) {
         setError(res.data.message);
       } else if (res.data.devNote) {
-        // Development mode - show both message and dev note
         setMsg(res.data.message + ' ' + res.data.devNote);
       } else {
         setMsg(res.data.message);

@@ -1,6 +1,6 @@
-import { FiMoon, FiSun } from 'react-icons/fi';
-import { FiUser, FiLogOut } from 'react-icons/fi';
+import { FiMoon, FiSun, FiLogOut, FiUser, FiHome } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
+import { useLocation } from 'react-router-dom';
 
 export default function Navbar({ 
   user, 
@@ -14,15 +14,17 @@ export default function Navbar({
   const { theme: contextTheme, toggleTheme: contextToggleTheme } = useTheme();
   const activeTheme = theme !== undefined ? theme : contextTheme;
   const handleToggle = toggleTheme || contextToggleTheme;
+  const location = useLocation();
+  const isUserDashboard = location.pathname.includes('user-dashboard');
 
   return (
-    <nav className="sticky top-0 z-50 glass-surface transition-all duration-300">
+    <nav className="sticky top-0 z-50 transition-all duration-300 glass-surface">
       <div className="container-padding">
         <div className="flex items-center justify-between h-14">
           <div className="flex-1">
             <button
               onClick={() => onNavigate('dashboard')}
-              className="pl-5 text-2xl font-black text-indigo-600 transition-all duration-200 dark:text-indigo-400 hover:opacity-80 active:scale-95 tracking-tight"
+              className="pl-5 text-2xl font-black tracking-tight text-indigo-600 transition-all duration-200 dark:text-indigo-400 hover:opacity-80 active:scale-95"
               style={{ fontFamily: 'Outfit, sans-serif' }}
               aria-label="Go to dashboard"
             >
@@ -42,11 +44,11 @@ export default function Navbar({
             )}
 
             <button
-              onClick={() => onNavigate('user-dashboard')}
+              onClick={() => isUserDashboard ? onNavigate('dashboard') : onNavigate('user-dashboard')}
               className="p-2 transition-colors duration-200 rounded-full text-neutral-700 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              aria-label="Go to profile"
+              aria-label={isUserDashboard ? "Go to dashboard" : "Go to user dashboard"}
             >
-              <FiUser size={20} />
+              {isUserDashboard ? <FiHome size={20} /> : <FiUser size={20} />}
             </button>
 
             {user && showIconLogout && onLogout && (

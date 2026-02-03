@@ -65,7 +65,6 @@ export default function EventDetails() {
     if (id) fetchEvent();
   }, [id]);
 
-  // Debug logging - moved before conditional returns to follow React hooks rules
   const currentUserId = user?.id || user?._id;
   const isJoined = event ? isUserRsvped(event, currentUserId) : false;
   const isFull = event ? isEventFull(event) : false;
@@ -142,7 +141,6 @@ export default function EventDetails() {
       const result = await cancelRsvp(event.id);
 
       if (result.success) {
-        // Fetch fresh event data from backend to sync properly
         const response = await api.get(`/event/${event.id}`);
         if (response.data?.event) {
           const ev = response.data.event;

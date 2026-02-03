@@ -33,7 +33,7 @@ export default function Signup() {
     if (!password) newErrors.password = 'Password is required';
     else {
       const strength = passwordStrength(password);
-      if (strength.percent < 40) { // Weak password
+      if (strength.percent < 40) { 
         newErrors.password = 'Password must be strong (8+ chars, uppercase, number, special char)';
       }
     }

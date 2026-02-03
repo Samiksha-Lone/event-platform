@@ -19,14 +19,11 @@ export default function UserDashboard() {
 
   const currentUserId = user?.id || user?._id || null;
 
-  // Refresh events on mount
   useEffect(() => {
     if (fetchEvents) {
       fetchEvents();
     }
   }, []);
-
-  // Log when events change
 
   const getOwnerId = (e) => {
     if (!e.owner) return null;
@@ -134,7 +131,7 @@ export default function UserDashboard() {
           {eventsError && (
             <div className="p-4 mb-8 text-sm text-red-700 border border-red-200 rounded-xl bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
               <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 <span>{eventsError}</span>
@@ -204,15 +201,15 @@ export default function UserDashboard() {
                   </div>
                 ) : (
                   <div className="py-16 text-center border-2 border-dashed border-neutral-100 dark:border-neutral-800 rounded-2xl animate-fade-in">
-                    <div className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <div className="flex items-center justify-center w-16 h-16 p-4 mx-auto mb-4 rounded-full bg-neutral-50 dark:bg-neutral-900">
                       <LayoutGrid className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
                     </div>
-                    <p className="text-neutral-600 dark:text-neutral-400 font-medium">
+                    <p className="font-medium text-neutral-600 dark:text-neutral-400">
                       You haven't created any events yet.
                     </p>
                     <button
                       onClick={() => navigate('/create-event')}
-                      className="mt-4 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                      className="mt-4 font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                       Create your first event →
                     </button>
@@ -243,15 +240,15 @@ export default function UserDashboard() {
                   </div>
                 ) : (
                   <div className="py-16 text-center border-2 border-dashed border-neutral-100 dark:border-neutral-800 rounded-2xl animate-fade-in">
-                    <div className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <div className="flex items-center justify-center w-16 h-16 p-4 mx-auto mb-4 rounded-full bg-neutral-50 dark:bg-neutral-900">
                       <Calendar className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
                     </div>
-                    <p className="text-neutral-600 dark:text-neutral-400 font-medium">
+                    <p className="font-medium text-neutral-600 dark:text-neutral-400">
                       You're not attending any events yet.
                     </p>
                     <button
                       onClick={() => navigate('/dashboard')}
-                      className="mt-4 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                      className="mt-4 font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                       Browse events to join →
                     </button>

@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 
-// Validate email configuration
 let transporter = null;
 let emailConfigValid = false;
 
@@ -8,7 +7,7 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
   transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
-    secure: true, // use SSL
+    secure: true, 
     auth: {
       user: process.env.SMTP_USER, 
       pass: process.env.SMTP_PASS, 
@@ -21,22 +20,20 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
 }
 
 async function sendResetEmail(to, resetLink) {
-  // Development fallback - log reset link to console
+  
   if (!emailConfigValid || process.env.NODE_ENV === 'development') {
     console.log('\n🔐 PASSWORD RESET LINK (Development Mode):');
     console.log(`To: ${to}`);
     console.log(`Link: ${resetLink}`);
     console.log('This link expires in 15 minutes\n');
     console.log('💡 Tip: Copy the link above and paste it in your browser to test password reset.\n');
-    
-    // Return success in development - don't throw error
+
     return { 
       accepted: [to], 
       response: 'Development mode - password reset link logged to console. Check server logs above.' 
     };
   }
 
-  // Production - send actual email
   if (!transporter) {
     throw new Error('Email service is not configured.');
   }
@@ -54,7 +51,6 @@ async function sendResetEmail(to, resetLink) {
       `,
     });
   } catch (error) {
-    console.error('❌ Email sending failed:', error.message);
     throw new Error(`Email service error: ${error.message}`);
   }
 }

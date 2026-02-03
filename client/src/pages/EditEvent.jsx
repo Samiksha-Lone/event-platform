@@ -183,6 +183,7 @@ export default function EditEvent() {
 
         res = await api.put(`/event/${id}`, formdata, {
           headers: { 'Content-Type': 'multipart/form-data' },
+          withCredentials: true
         });
       }
       else if (imageMode === 'url' && form.imageUrl) {

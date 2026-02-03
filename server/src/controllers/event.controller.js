@@ -3,6 +3,7 @@ const { v4: uuid } = require('uuid');
 const Event = require('../models/event.model');
 const eventModel = require('../models/event.model');
 const storageService = require('../services/storage.service');
+const cacheService = require('../services/cache.service');
 
  async function createEvent(req, res) {
   try {
@@ -93,8 +94,15 @@ const storageService = require('../services/storage.service');
 
     const newEvent = await eventModel.create(eventData);
 
+    // Add audit log for creation
+    newEvent.addAuditLog('created', req.user._id, { title, category, date });
+    await newEvent.save();
+
     // Populate owner and rsvps for complete response
     const populatedEvent = await newEvent.populate('owner', 'name email _id');
+
+    // Invalidate all event list caches
+    await cacheService.delPattern('events:*');
 
     res.status(201).json({
       message: 'Event created successfully',
@@ -106,14 +114,52 @@ const storageService = require('../services/storage.service');
   }
 }
 
-// GET ALL EVENTS (for dashboard)
+// GET ALL EVENTS (for dashboard) - WITH PAGINATION AND CACHING
 async function getEvents(req, res) {
   try {
-    const events = await eventModel
-      .find({})
-      .populate('owner', 'name email _id')
-      .populate('rsvps', 'name email _id');
+    // Extract pagination parameters from query
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const category = req.query.category;
+    
+    // Build query filter
+    const filter = { isDeleted: false }; // Only fetch non-deleted events
+    if (category && category !== 'all') {
+      filter.category = category;
+    }
+    
+    // Filter by tag if provided
+    if (req.query.tag) {
+      filter.tags = req.query.tag.toLowerCase();
+    }
 
+    // Create cache key based on query parameters
+    const cacheKey = `events:page:${page}:limit:${limit}:category:${category || 'all'}`;
+    
+    // Try to get from cache first
+    try {
+      const cachedData = await cacheService.get(cacheKey);
+      if (cachedData) {
+        console.log('✅ Returning cached events');
+        return res.status(200).json(cachedData);
+      }
+    } catch (cacheErr) {
+      console.warn('Cache error (ignoring):', cacheErr);
+    }
+
+    // If not in cache, fetch from database
+    const [events, totalEvents] = await Promise.all([
+      eventModel
+        .find(filter)
+        .sort({ createdAt: -1 }) // Sort by newest first
+        .skip(skip)
+        .limit(limit)
+        .populate('owner', 'name email _id')
+        .populate('rsvps', 'name email _id')
+        .select('-auditLog'), // Exclude audit log from list view for performance
+      eventModel.countDocuments(filter)
+    ]);
 
     // Filter out events with null owners (if any) and log them
     const eventsWithOwners = events.filter(e => e.owner !== null);
@@ -130,15 +176,35 @@ async function getEvents(req, res) {
       });
     }
 
-    res.status(200).json({
+    const totalPages = Math.ceil(totalEvents / limit);
+    const hasMore = page < totalPages;
+
+    const responseData = {
       message: 'Events fetched successfully',
-      events: eventsWithOwners.length > 0 ? eventsWithOwners : events, // Return all even if some missing owners
-    });
+      events: eventsWithOwners.length > 0 ? eventsWithOwners : events,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalEvents,
+        eventsPerPage: limit,
+        hasMore
+      }
+    };
+
+    // Cache the response for 5 minutes (300 seconds)
+    try {
+      await cacheService.set(cacheKey, responseData, 300);
+    } catch (cacheErr) {
+      console.warn('Cache set error (ignoring):', cacheErr);
+    }
+
+    res.status(200).json(responseData);
   } catch (err) {
     console.error('Get events error:', err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 }
+
 
 // GET EVENT BY ID
 async function getEventById(req, res) {
@@ -150,6 +216,15 @@ async function getEventById(req, res) {
       .populate('rsvps', 'name email _id');
 
     if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Check if event is soft deleted
+    if (event.isDeleted) {
+      // Allow specific role checks here if needed, or if req.user matches owner
+      // For public view, we treat it as not found
+      // Note: req.user might not be available if this route is public optional auth
+      // For now, simpler to just hide it unless we implement specific "view deleted" logic
       return res.status(404).json({ message: 'Event not found' });
     }
 
@@ -173,6 +248,10 @@ async function rsvpEvent(req, res) {
     const event = await eventModel.findById(eventId);
     
     if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    if (event.isDeleted) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
@@ -223,6 +302,10 @@ async function unrsvpEvent(req, res) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
+    if (updatedEvent.isDeleted) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
 
     res.json({ message: 'RSVP cancelled', event: updatedEvent });
   } catch (err) {
@@ -233,7 +316,6 @@ async function unrsvpEvent(req, res) {
 
 async function updateEvent(req, res) {
   try {
-
     const eventId = req.params.id;
     const userId = req.user?._id;
 
@@ -246,7 +328,6 @@ async function updateEvent(req, res) {
     }
 
     const event = await eventModel.findById(eventId);
-
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -255,50 +336,42 @@ async function updateEvent(req, res) {
       return res.status(500).json({ message: 'Event owner missing' });
     }
 
-    // ownership check
     if (event.owner.toString() !== userId.toString()) {
-      return res
-        .status(403)
-        .json({ message: 'Not allowed to edit this event' });
+      return res.status(403).json({ message: 'Not allowed to edit this event' });
     }
 
     const { title, description, date, location, capacity, category, time, eventType, meetingPlatform, meetingLink, meetingPassword } = req.body;
 
-    if (title !== undefined) event.title = title;
-    if (description !== undefined) event.description = description;
-    if (date !== undefined) event.date = date;
-    if (capacity !== undefined) event.capacity = capacity;
-    if (category !== undefined) event.category = category;
-    if (time !== undefined) event.time = time;
+    if (!title || !description || !date || !time || !capacity) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
 
-    // Handle event type changes
+    event.title = title;
+    event.description = description;
+    event.date = new Date(date);
+    event.capacity = parseInt(capacity);
+    event.category = category || event.category;
+    event.time = time;
+
     if (eventType !== undefined) {
-      if (!['online', 'offline'].includes(eventType)) {
-        return res.status(400).json({ message: 'Invalid event type' });
-      }
       event.eventType = eventType;
-
-      // Clear opposite type fields
       if (eventType === 'offline') {
         event.meetingPlatform = undefined;
         event.meetingLink = undefined;
         event.meetingPassword = undefined;
-        if (location !== undefined) {
-          event.location = location;
-        }
+        event.location = location;
       } else {
         event.location = undefined;
-        if (meetingPlatform !== undefined) event.meetingPlatform = meetingPlatform;
-        if (meetingLink !== undefined) event.meetingLink = meetingLink;
-        if (meetingPassword !== undefined) event.meetingPassword = meetingPassword;
+        event.meetingPlatform = meetingPlatform;
+        event.meetingLink = meetingLink;
+        event.meetingPassword = meetingPassword || undefined;
       }
     } else {
-      // Update only the relevant fields based on current event type
-      if (event.eventType === 'offline' && location !== undefined) {
-        event.location = location;
+      if (event.eventType === 'offline') {
+        event.location = location || event.location;
       } else if (event.eventType === 'online') {
-        if (meetingPlatform !== undefined) event.meetingPlatform = meetingPlatform;
-        if (meetingLink !== undefined) event.meetingLink = meetingLink;
+        event.meetingPlatform = meetingPlatform || event.meetingPlatform;
+        event.meetingLink = meetingLink || event.meetingLink;
         if (meetingPassword !== undefined) event.meetingPassword = meetingPassword;
       }
     }
@@ -313,17 +386,23 @@ async function updateEvent(req, res) {
 
     await event.save();
 
-    // Populate and return full event data
-    const updatedEvent = await event.populate('owner', 'name email _id').populate('rsvps', 'name email _id');
+    const updatedEvent = await eventModel.findById(eventId)
+      .populate('owner', 'name email _id')
+      .populate('rsvps', 'name email _id');
 
-    return res.json({ message: 'Event updated', event: updatedEvent });
+    await cacheService.delPattern('events:*');
+    await cacheService.del(`event:${eventId}`);
+
+    return res.json({ 
+      message: 'Event updated successfully', 
+      event: updatedEvent 
+    });
   } catch (err) {
     console.error('Update event error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 }
 
-// DELETE EVENT (only owner)
 async function deleteEvent(req, res) {
   try {
     const eventId = req.params.id;
@@ -338,7 +417,12 @@ async function deleteEvent(req, res) {
         .json({ message: 'Not allowed to delete this event' });
     }
 
-    await event.deleteOne();
+    event.softDelete(userId);
+    await event.save();
+
+    await cacheService.delPattern('events:*');
+    await cacheService.del(`event:${eventId}`);
+    
     res.json({ message: 'Event deleted' });
   } catch (err) {
     console.error('Delete event error:', err);

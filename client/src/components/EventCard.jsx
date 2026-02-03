@@ -27,6 +27,7 @@ export default function EventCard({
           <img
             src={event.image}
             alt={event.title}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={(e) => {
               e.target.style.opacity = '0';
