@@ -5,11 +5,6 @@
 .env.production.local
 .env.test.local
 
-# Vite build output
-dist/
-dist-ssr/
-*.local
-
 # Node modules
 node_modules/
 package-lock.json
@@ -51,6 +46,12 @@ Thumbs.db
 .Trashes
 ehthumbs.db
 
+# Build & Output
+dist/
+build/
+.next/
+out/
+
 # Temporary & Cache
 temp/
 tmp/
@@ -64,9 +65,23 @@ coverage/
 lcov.info
 .nyc_output/
 
+# Runtime & Security Files
+*.pem
+*.key
+*.cert
+*.p12
+api-keys.json
+secrets.json
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+
 # Deployment
-.vercel
-.netlify
+.vercel/
+.netlify/
+.render/
 
 # Optional REPL history
 .node_repl_history

@@ -5,6 +5,22 @@ EventHub is a full-stack event management platform built with the MERN stack (Mo
 **Live Demo:** https://eventhub-eight.vercel.app/
 **Repository:** [GitHub](https://github.com/Samiksha-Lone/event-platform)
 
+## 📑 Table of Contents
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure-overview)
+- [Authentication](#-authentication--authorization)
+- [API Documentation](#-api-documentation)
+- [Available Scripts](#-available-scripts)
+- [Testing](#-testing-the-application)
+- [Troubleshooting](#-troubleshooting)
+- [Development](#-development-workflow)
+- [Deployment](#-deployment-guide)
+- [Contributing](#-contributing)
+- [License](#-license)
+
 ---
 
 ## ✨ Features
@@ -100,6 +116,8 @@ EventHub is a full-stack event management platform built with the MERN stack (Mo
 - **Axios** for API communication with credentials support
 - **Tailwind CSS** for responsive styling
 - **Context API** for global state (Auth, Events, Theme, Toast)
+- **Lucide React** for icons
+- **React Icons** for additional icon sets
 - **Error Boundaries** for graceful error handling
 
 ### Backend
@@ -111,7 +129,6 @@ EventHub is a full-stack event management platform built with the MERN stack (Mo
 - **Multer** for file uploads
 - **CORS** middleware for cross-origin requests
 - **dotenv** for environment configuration
-- **Nodemon** for development auto-reload
 - **Helmet.js** for security HTTP headers
 - **Express Rate Limiter** for API rate limiting
 - **Express Validator** for input validation
@@ -134,7 +151,35 @@ EventHub is a full-stack event management platform built with the MERN stack (Mo
 
 ---
 
-## 📂 Project Structure
+## ⚡ Quick Start
+
+### Prerequisites
+- **Node.js** v18+ and npm/yarn
+- **MongoDB** (Atlas account or local instance)
+- **Redis** (optional, for caching)
+- **Git**
+
+### One-Command Setup (Development)
+```bash
+# Clone the repository
+git clone https://github.com/Samiksha-Lone/event-platform.git
+cd event-platform
+
+# Setup backend
+cd server
+cp .env.example .env              # Update with your credentials
+npm install
+npm run dev                        # Runs on http://localhost:3000
+
+# In a new terminal, setup frontend
+cd ../client
+npm install
+npm run dev                        # Runs on http://localhost:5173
+```
+
+Visit **http://localhost:5173** in your browser. That's it!
+
+---
 
 ```
 event-platform/
@@ -243,19 +288,22 @@ event-platform/
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher)
+- **Node.js** (v18 or higher)
 - **npm** or **yarn**
 - **MongoDB** (Atlas account or local instance)
+- **Redis** (optional, for caching and sessions)
 - **Git**
 
-### 1. Clone the Repository
+### Step-by-Step Setup Guide
+
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Samiksha-Lone/event-platform.git
 cd event-platform
 ```
 
-### 2. Backend Setup
+#### 2. Backend Setup
 
 Navigate to the server directory:
 
@@ -264,37 +312,39 @@ cd server
 npm install
 ```
 
-Create a `.env` file in the `server` directory:
+**Create a `.env` file** in the `server` directory using the `.env.example` as reference:
 
+```bash
+cp .env.example .env
+# Then edit .env with your credentials
+```
+
+**Required `.env` variables:**
 ```env
 # Server Configuration
 PORT=3000
 NODE_ENV=development
 
-# Database
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/event-platform
+# Database - REQUIRED
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/eventdb?retryWrites=true&w=majority
 
-# JWT Authentication
-JWT_SECRET=your_super_secret_jwt_key_here_change_this
+# Authentication - REQUIRED
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars
 
-# Client URL (for CORS and redirects)
+# Frontend URL - REQUIRED
 CLIENT_URL=http://localhost:5173
 
-# Email Configuration (SMTP for password reset)
+# Email Service (Gmail with App Password) - REQUIRED for password resets
 SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
+SMTP_PASS=your-16-char-app-password
 
-# SendGrid Email Service (Alternative to SMTP)
-SENDGRID_API_KEY=your_sendgrid_api_key
-
-# Image Upload (ImageKit)
+# Image Upload Service - REQUIRED for event images
 IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
 IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_endpoint
 
-# Redis Configuration (for caching and sessions)
+# Redis (Optional, for caching)
 REDIS_URL=redis://localhost:6379
-REDIS_PASSWORD=your_redis_password
 
 # Logging
 LOG_LEVEL=info
@@ -303,14 +353,14 @@ LOG_LEVEL=info
 Start the backend server:
 
 ```bash
-npm run dev    # Development with nodemon
+npm run dev    # Development with auto-reload
 # or
 npm start      # Production
 ```
 
 The backend will be running at `http://localhost:3000`
 
-### 3. Frontend Setup
+#### 3. Frontend Setup
 
 Open a new terminal and navigate to the client directory:
 
@@ -319,9 +369,10 @@ cd client
 npm install
 ```
 
-Create a `.env` file in the `client` directory:
+**Create a `.env` file** in the `client` directory:
 
 ```env
+# API Base URL - REQUIRED
 VITE_API_URL=http://localhost:3000
 ```
 
@@ -332,6 +383,16 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`
+
+### Verification Checklist
+
+- [ ] Backend server is running on port 3000
+- [ ] Frontend is running on port 5173
+- [ ] MongoDB connection is successful (check server logs)
+- [ ] Redis is running (if using caching features)
+- [ ] Environment variables are properly configured
+- [ ] Can access the application at http://localhost:5173
+- [ ] Can register and login successfully
 
 ---
 
@@ -348,13 +409,14 @@ The frontend will be available at `http://localhost:5173`
 ### Security Features
 - JWT-based stateless authentication
 - HTTP-only cookies for XSS protection
-- Rate limiting on all API endpoints
+- Rate limiting on all API endpoints (15 requests per 15 minutes)
 - CSRF protection on state-changing requests
 - Input validation and sanitization
-- NoSQL injection prevention
+- NoSQL injection prevention (mongo-sanitize)
 - Security headers via Helmet.js
 - Password strength requirements
 - Token expiration and refresh
+- Secure password reset with email verification
 
 ---
 
@@ -487,136 +549,434 @@ GET    /api/analytics/event/:eventId - Get event analytics (protected, owner onl
 
 ---
 
+## � Available Scripts
+
+### Frontend (client/)
+```bash
+npm run dev      # Start development server on port 5173
+npm run build    # Build for production
+npm run preview  # Preview production build locally
+npm run lint     # Run ESLint to check code quality
+```
+
+### Backend (server/)
+```bash
+npm run dev      # Start with auto-reload (using --watch)
+npm start        # Start production server
+npm test         # Run tests (currently not implemented)
+```
+
+---
+
+## 🧪 Testing the Application
+
+### Create Test Account
+1. Open http://localhost:5173
+2. Click "Sign Up"
+3. Register with any email and password
+4. Verify backend logs show user creation
+5. Login with your credentials
+
+### Test RSVP Feature
+1. Dashboard shows all events
+2. Click on any event to see details
+3. Click "RSVP Now" if capacity available
+4. Your event appears in "Events I Joined"
+5. Click "Cancel RSVP" to leave event
+
+### Test 2FA Setup
+1. After login, go to Account Settings (if implemented)
+2. Click "Enable 2FA"
+3. Scan QR code with Google Authenticator or Authy
+4. Enter 6-digit OTP to verify
+5. On next login, you'll be prompted for 2FA code
+
+### Test Email Features
+1. Click "Forgot Password"
+2. Enter your registered email
+3. Check console logs for reset link (if SMTP not configured)
+4. Or check email inbox if SMTP is properly configured
+
+### Test Image Upload
+1. Create a new event
+2. Upload an image
+3. Verify image appears in event card
+4. Check ImageKit console for uploaded images
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Backend Issues
 
-**Port already in use**
+**MongoDB Connection Failed**
+```
+Error: connect ECONNREFUSED
+```
+Solutions:
+- Check `MONGO_URI` in `.env` is correct
+- Verify MongoDB Atlas IP whitelist includes your IP
+- Ensure database credentials are accurate
+- Test connection: `mongosh "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net"`
+
+**Port Already in Use (3000)**
 ```bash
-# Find process using port 3000
+# Windows
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+
+# Mac/Linux
 lsof -i :3000
-# Kill process
 kill -9 <PID>
 ```
 
-**MongoDB connection error**
-- Verify `MONGO_URI` in `.env`
-- Check MongoDB Atlas IP whitelist
-- Ensure credentials are correct
-
-**JWT token issues**
-- Clear browser cookies
+**JWT Token Issues**
+- Clear browser cookies: DevTools → Application → Cookies → Delete all
 - Logout and login again
-- Check `JWT_SECRET` is set correctly
-- Verify token hasn't expired
+- Verify `JWT_SECRET` is set and consistent
+- Check token expiration: Token valid for 7 days by default
 
-**2FA issues**
-- Ensure authenticator app is synced with correct time
-- Regenerate QR code and re-scan if needed
-- Check backup codes if available
+**SMTP/Email Not Working**
+- Verify Gmail App Password (not regular password): https://myaccount.google.com/apppasswords
+- Enable 2FA on Gmail first
+- Check `SMTP_USER` and `SMTP_PASS` are correct
+- For development: reset links are logged to console if SMTP fails
+- Alternative: Use SendGrid - set `SENDGRID_API_KEY`
 
-**Redis connection error**
-- Verify Redis server is running
-- Check `REDIS_URL` in `.env`
-- Ensure Redis credentials are correct
+**2FA QR Code Not Appearing**
+- Check browser console for errors
+- Verify `qrcode` package is installed: `npm list qrcode`
+- Clear browser cache and reload
+- Test with curl: `curl -X POST http://localhost:3000/2fa/setup -H "Authorization: Bearer <token>"`
 
-**Rate limiting errors (429 responses)**
-- Wait for rate limit window to reset (typically 15 minutes)
-- Check API rate limit configuration in `.env`
+**Redis Connection Failed**  
+- Start Redis: `redis-server` (or `redis-server.exe` on Windows)
+- Verify `REDIS_URL` in `.env`
+- If not available, in-memory cache is used as fallback
+- Check Redis is running: `redis-cli ping` (should return "PONG")
+
+**Rate Limiting (429 Errors)**
+- Wait for limit window to reset (default: 15 minutes)
+- Reduce request frequency
+- Check rate limiter config in `auth.middleware.js`
 
 ### Frontend Issues
 
-**API calls failing**
-- Verify `VITE_API_URL` in `.env`
-- Check backend is running on correct port
-- Clear browser cache and cookies
-- Open DevTools Network tab to debug
+**API Calls Failing**
+```
+Error: Network request failed / Cannot connect to server
+```
+Solutions:
+- Verify backend is running: `curl http://localhost:3000`
+- Check `VITE_API_URL` in `.env` matches backend URL
+- Open DevTools Network tab to see requests
+- Look for CORS errors (check backend CORS config)
 
-**Build issues**
+**Build Errors**
 ```bash
-# Clear node modules and reinstall
+# Clean and reinstall
 rm -rf node_modules package-lock.json
 npm install
 npm run dev
+
+# Clear Vite cache
+rm -rf node_modules/.vite
 ```
+
+**Login Not Working**
+- Check browser console for errors
+- Verify backend is running
+- Check API response: DevTools → Network → Login request
+- Clear cookies and try again
+- Ensure `.env` has correct `VITE_API_URL`
+
+**Images Not Loading**
+- Verify ImageKit credentials in `.env`
+- Check network requests for 403/401 errors
+- Test ImageKit directly: `curl https://ik.imagekit.io/test`
+- Verify image upload succeeded (check ImageKit dashboard)
+
+**Styling Issues**
+- Rebuild Tailwind CSS: `npm run build`
+- Clear browser cache
+- Check `tailwind.config.js` paths are correct
+- Verify Tailwind CSS is installed: `npm list tailwindcss`
+
+---
+## 🔍 Project Structure Overview
+
+The repository is organized into two main directories:
+
+```
+event-platform/
+├── client/                 # React + Vite frontend
+│   └── src/
+│       ├── components/     # Reusable UI components
+│       ├── pages/          # Full page components
+│       ├── context/        # Global state (Auth, Events, Theme, Toast)
+│       ├── hooks/          # Custom React hooks
+│       ├── routes/         # Route definitions
+│       └── utils/          # Helper functions and API calls
+│
+├── server/                 # Express.js + Node.js backend
+│   └── src/
+│       ├── controllers/    # Request handlers
+│       ├── models/         # MongoDB schemas (Mongoose)
+│       ├── routes/         # API route definitions
+│       ├── middlewares/    # Express middlewares
+│       ├── services/       # Business logic services
+│       ├── utils/          # Helper utilities
+│       └── db/             # Database connection
+│
+└── README.md              # This file
+```
+
+---
+## �‍💻 Development Workflow
+
+### Creating New Features
+
+**Adding a New API Endpoint:**
+1. Create controller in `server/src/controllers/`
+2. Add route in `server/src/routes/`
+3. Add authentication middleware if needed
+4. Test with curl or Postman
+5. Add frontend call using `api.js` utilities
+
+**Adding Frontend Pages:**
+1. Create page component in `client/src/pages/`
+2. Add route in `client/src/routes/AppRoutes.jsx`
+3. Use Context API for state management (avoid prop drilling)
+4. Add error boundaries for graceful failures
+
+### Code Standards
+- Frontend: ESLint enabled - run `npm run lint` before commits
+- Backend: Input validation middleware on all endpoints
+- Use environment variables for configuration
+- Add error handling on all API calls
+- Test authentication on protected routes
+
+### Debugging Tips
+- **Backend**: Check `server/logs/` for detailed logs
+- **Frontend**: Use React DevTools browser extension
+- **Database**: Use MongoDB Compass to inspect collections
+- **API**: Use Postman to test endpoints directly
+- **Networking**: DevTools → Network tab shows all requests/responses
 
 ---
 
 ## 📝 Environment Variables Reference
 
-### Server (.env)
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment | `development` or `production` |
-| `MONGO_URI` | MongoDB connection string | `mongodb+srv://...` |
-| `JWT_SECRET` | Secret for JWT signing | `your-super-secret-key-min-32-chars` |
-| `CLIENT_URL` | Frontend URL | `http://localhost:5173` |
-| `SMTP_USER` | Email for password resets (SMTP) | `email@gmail.com` |
-| `SMTP_PASS` | App password for SMTP | `xxxx xxxx xxxx xxxx` |
-| `SENDGRID_API_KEY` | SendGrid API key (alternative to SMTP) | `SG.xxxxxxxxxxxxx` |
-| `IMAGEKIT_PUBLIC_KEY` | ImageKit public key | `your_public_key` |
-| `IMAGEKIT_PRIVATE_KEY` | ImageKit private key | `your_private_key` |
-| `IMAGEKIT_URL_ENDPOINT` | ImageKit URL endpoint | `https://ik.imagekit.io/endpoint` |
-| `REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
-| `REDIS_PASSWORD` | Redis password (if required) | `your_redis_password` |
-| `LOG_LEVEL` | Logging level | `info` or `debug` or `error` |
+### Complete Server Configuration
+See [`.env.example`](server/.env.example) for all available options.
 
-### Client (.env)
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `http://localhost:3000` |
+### Complete Client Configuration
+```env
+# Required
+VITE_API_URL=http://localhost:3000
 
----
-
-## 🚀 Deployment
-
-### Frontend (Vercel)
-```bash
-npm install -g vercel
-vercel login
-vercel deploy
+# Optional (for future features)
+VITE_APP_NAME=EventHub
+VITE_DEBUG=false
 ```
 
-### Backend (Render/Railway)
-1. Create account on Render or Railway
-2. Connect GitHub repository
-3. Set environment variables
-4. Deploy
+### Getting Service Credentials
+
+**MongoDB Atlas:**
+1. Create account at https://www.mongodb.com/cloud/atlas
+2. Create a cluster
+3. Create database user
+4. Get connection string: `mongodb+srv://user:pass@cluster.mongodb.net/dbname`
+
+**ImageKit:**
+1. Sign up at https://imagekit.io
+2. Get Public Key, Private Key, and URL Endpoint from dashboard
+3. Create folder `/event-platform` for organized storage
+
+**Gmail/SMTP:**
+1. Enable 2FA on Google Account
+2. Generate App Password: https://myaccount.google.com/apppasswords
+3. Use 16-character password (remove spaces)
+
+**Redis:**
+- Local: Download from https://redis.io/download
+- Cloud: Use Redis Cloud (https://app.redislabs.com) for production
+
+---
+## 🚀 Deployment Guide
+
+### Frontend Deployment (Vercel - Recommended)
+
+**Prerequisites:**
+- GitHub account with repository pushed
+- Vercel account (free tier available)
+
+**Steps:**
+1. Go to [vercel.com](https://vercel.com)
+2. Click "New Project"
+3. Select your GitHub repository
+4. Framework Preset: **Vite**
+5. Root Directory: **./client**
+6. Build Command: `npm run build`
+7. Output Directory: `dist`
+8. Environment Variables:
+   ```
+   VITE_API_URL=https://your-backend-url.com
+   ```
+9. Click "Deploy"
+
+**Alternative Platforms:**
+- **Netlify**: Drag & drop dist folder or connect GitHub
+- **GitHub Pages**: Configure `vite.config.js` with `base: '/event-platform/'`
+
+### Backend Deployment (Render or Railway)
+
+**Render.com (Recommended - Free tier):**
+1. Go to [render.com](https://render.com)
+2. Click "New +" → "Web Service"
+3. Connect GitHub repository
+4. Settings:
+   - **Name**: `event-platform-server`
+   - **Runtime**: Node
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+   - **Root Directory**: `server`
+5. Add Environment Variables (copy from `.env`):
+   - `PORT`, `NODE_ENV`, `MONGO_URI`, `JWT_SECRET`, etc.
+6. Click "Deploy"
+
+**Railway.app:**
+1. Connect GitHub repository
+2. Select `server` directory
+3. Auto-detects Node.js
+4. Add variables: Database URL, JWT secret, etc.
+5. Deploy automatically
+
+**Deploy to Your Own Server:**
+```bash
+# SSH into your server
+ssh user@your-server.com
+
+# Clone repository
+git clone https://github.com/Samiksha-Lone/event-platform.git
+cd event-platform/server
+
+# Install dependencies
+npm install
+
+# Create .env file
+nano .env  # Add all required variables
+
+# Start with PM2 (for background execution)
+npm install -g pm2
+pm2 start server.js --name "event-platform"
+pm2 save
+```
+
+### Database Setup
+
+**MongoDB Atlas (Cloud Database - Recommended):**
+1. Create account at [mongodb.com](https://www.mongodb.com/cloud/atlas)
+2. Create a free shared cluster
+3. Create database user
+4. Whitelist all IPs (0.0.0.0/0 for testing, restrict in production)
+5. Get connection string: `mongodb+srv://user:pass@cluster.mongodb.net/eventdb`
+6. Use this as `MONGO_URI` in production `.env`
+
+**For Self-Hosted MongoDB:**
+1. Install MongoDB on your server
+2. Configure connection string: `mongodb://localhost:27017/eventdb`
+
+### Domain & DNS Setup
+
+1. Purchase domain from GoDaddy, Namecheap, etc.
+2. Update DNS records to point to deployment service:
+   - **Vercel**: Add CNAME records (Vercel provides specific ones)
+   - **Render**: Similar process with provided DNS records
+3. Wait for DNS propagation (24-48 hours typically)
+
+### Environment Variables for Production
+
+**Backend `.env` Production Checklist:**
+```env
+NODE_ENV=production
+PORT=3000
+JWT_SECRET=<strong-secret-min-32-chars>
+MONGO_URI=<atlas-cloud-connection>
+CLIENT_URL=https://your-domain.com
+SMTP_USER=<verified-email>
+SMTP_PASS=<app-password>
+IMAGEKIT_PUBLIC_KEY=<key>
+IMAGEKIT_PRIVATE_KEY=<key>
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/<endpoint>
+REDIS_URL=<redis-cloud-url>
+LOG_LEVEL=info
+```
+
+**Frontend Production Checklist:**
+- [ ] Change `VITE_API_URL` to production backend URL
+- [ ] Enable minification and code splitting
+- [ ] Test build locally: `npm run build && npm run preview`
+- [ ] Set up analytics (optional)
+- [ ] Configure error tracking (Sentry, etc.)
+
+---
+## � License
+
+This project is open source and available under the **ISC License** - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📄 License
-
-This project is open source and available under the MIT License.
-
----
-
-## 👨‍💻 Author
+## 👨‍💻 Author & Maintainer
 
 **Samiksha Lone**
-
-- Email: [samikshalone2@gmail.com](mailto:samikshalone2@gmail.com)
-- GitHub: [@Samiksha-Lone](https://github.com/Samiksha-Lone)
-- LinkedIn: [Samiksha Lone](https://linkedin.com/in/samiksha-lone)
+- 📧 Email: [samikshalone2@gmail.com](mailto:samikshalone2@gmail.com)
+- 🐙 GitHub: [@Samiksha-Lone](https://github.com/Samiksha-Lone)
+- 💼 LinkedIn: [Samiksha Lone](https://linkedin.com/in/samiksha-lone)
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit issues and enhancement requests.
+Contributions, issues, and feature requests are welcome! Please feel free to submit a pull request or open an issue.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### How to Contribute
+1. **Fork** the repository
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and test thoroughly
+4. **Commit with clear messages**: `git commit -m 'Add amazing feature'`
+5. **Push to your branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request** with a clear description
+
+### Contribution Guidelines
+- Follow existing code style
+- Add comments for complex logic
+- Test your changes before submitting
+- Update README if adding new features
+- Ensure no secrets are committed
+- Run linter before submitting: `npm run lint`
 
 ---
 
-## 📞 Support
+## 📞 Support & Community
 
-For support, please open an issue on GitHub or reach out via email.
+- **Issues**: [GitHub Issues](https://github.com/Samiksha-Lone/event-platform/issues)
+- **Email Support**: samikshalone2@gmail.com
+- **Live Demo**: https://eventhub-eight.vercel.app/
+
+---
+
+## 🎯 Roadmap & Future Features
+
+- [ ] Mobile app (React Native)
+- [ ] Calendar view improvements
+- [ ] Email digest notifications
+- [ ] Social sharing features
+- [ ] AI-powered event recommendations enhancement
+- [ ] Payment integration for premium events
+- [ ] Event livestreaming support
+- [ ] Advanced analytics dashboard
+- [ ] Integration with calendar apps (Google Calendar, Outlook)
 
 ---
 
