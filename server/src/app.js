@@ -12,8 +12,10 @@ const { requestLogger } = require('./middlewares/logger.middleware');
 const app = express();
 
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173', 
-];
+  'http://localhost:5173',           
+  'https://eventhub-eight.vercel.app', 
+  process.env.CLIENT_URL,            
+].filter(Boolean); 
 
 app.use(helmet({
   contentSecurityPolicy: {
