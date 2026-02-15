@@ -184,10 +184,45 @@ export default function EditEvent() {
         res = await api.put(`/event/${id}`, formdata);
       }
       else if (imageMode === 'url' && form.imageUrl) {
-        res = await api.put(
-          `/event/${id}`,
-          { ...eventData, imageUrl: form.imageUrl }
-        );
+        // If imageUrl is a data URL (base64 from AI poster), send as multipart FormData
+        if (typeof form.imageUrl === 'string' && form.imageUrl.startsWith('data:')) {
+          const dataURLtoFile = (dataurl, filename) => {
+            const arr = dataurl.split(',');
+            const mimeMatch = arr[0].match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            try {
+              return new File([u8arr], filename, { type: mime });
+            // eslint-disable-next-line no-unused-vars
+            } catch (err) {
+              // Fallback for older browsers
+              const blob = new Blob([u8arr], { type: mime });
+              blob.name = filename;
+              return blob;
+            }
+          };
+
+          const posterFile = dataURLtoFile(form.imageUrl, `poster-${Date.now()}.jpg`);
+          const formdata = new FormData();
+          Object.keys(eventData).forEach(key => {
+            if (eventData[key] !== undefined) {
+              formdata.append(key, eventData[key]);
+            }
+          });
+          formdata.append('image', posterFile);
+
+          res = await api.put(`/event/${id}`, formdata);
+        } else {
+          res = await api.put(
+            `/event/${id}`,
+            { ...eventData, imageUrl: form.imageUrl }
+          );
+        }
       }
       else {
         res = await api.put(
