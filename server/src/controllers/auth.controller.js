@@ -40,7 +40,7 @@ async function registerUser(req, res) {
         res.cookie("token", token, {
             httpOnly: true,
             sameSite: 'lax',
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
 
@@ -54,7 +54,6 @@ async function registerUser(req, res) {
             token 
         });
     } catch (error) {
-        console.error('Register error:', error);
         res.status(500).json({ message: 'Server error during registration', error: error.message });
     }
 }
@@ -152,7 +151,6 @@ async function loginUser(req, res) {
             token 
         });
     } catch (error) {
-        console.error('Login error:', error);
         res.status(500).json({ message: 'Server error during login', error: error.message });
     }
 }
@@ -208,11 +206,8 @@ async function forgotPassword(req, res) {
                 message: 'Password reset link has been sent to your email'
             });
         } catch (emailError) {
-            console.error('Email sending error:', emailError);
- 
+  
             if (process.env.NODE_ENV === 'development') {
-                console.log('\n🔗 For development testing, use this reset link:');
-                console.log(`${resetLink}\n`);
                 return res.json({
                     message: 'Password reset link generated (check server console for the link in development)',
                     devNote: 'Reset link logged to server console. Copy it from there.'
@@ -227,7 +222,6 @@ async function forgotPassword(req, res) {
 
     } catch (error) {
 
-        console.error('forgotPassword error:', error);
         return res.status(500).json({ 
             message: 'Server error',
             error: error.message 
@@ -295,7 +289,6 @@ async function resetPassword(req, res) {
 
     return res.json({ message: 'Password updated successfully' });
   } catch (err) {
-    console.error('resetPassword error:', err);
     return res.status(500).json({ message: 'Server error' });
   }
 }

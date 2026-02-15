@@ -65,13 +65,19 @@ export default function Dashboard() {
 
   const handleToggleRsvp = async (eventId, isJoined) => {
     setRsvpLoading(prev => ({ ...prev, [eventId]: true }));
-    const result = isJoined ? await cancelRsvp(eventId) : await rsvp(eventId);
-    if (result.success) {
-      addToast(isJoined ? 'Successfully left event' : 'Spot reserved successfully!', 'success');
-    } else {
-      addToast(result.error || 'Action failed', 'error');
+    try {
+      const result = isJoined ? await cancelRsvp(eventId) : await rsvp(eventId);
+      if (result.success) {
+        addToast(isJoined ? 'Successfully left event' : 'Spot reserved successfully!', 'success');
+      } else {
+        addToast(result.error || 'Action failed', 'error');
+      }
+    } catch (err) {
+      console.error('RSVP error:', err);
+      addToast('Failed to process RSVP', 'error');
+    } finally {
+      setRsvpLoading(prev => ({ ...prev, [eventId]: false }));
     }
-    setRsvpLoading(prev => ({ ...prev, [eventId]: false }));
   };
 
   const handleNavigate = (path) => {
@@ -234,9 +240,8 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {filteredEventsList.map((event, index) => {
                   const eventId = event._id || event.id;
-                  const currentUserId = user?.id || user?._id;
-
-                  const isJoined = isUserRsvped(event, currentUserId);
+                  const currentUserId = user?.id || user?._id || user?._id?.toString();
+                  const isJoined = currentUserId ? isUserRsvped(event, currentUserId) : false;
                   const isFull = isEventFull(event);
 
                   return (

@@ -42,8 +42,8 @@ export function AuthProvider({ children }) {
         ...user
       };
 
-      sessionStorage.setItem('user', JSON.stringify(userToSave));
-      sessionStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(userToSave));
+      localStorage.setItem('authToken', token);
       
       dispatch({ type: 'AUTH_SUCCESS', payload: userToSave });
       return { success: true };
@@ -68,8 +68,8 @@ export function AuthProvider({ children }) {
         ...user
       };
 
-      sessionStorage.setItem('user', JSON.stringify(userToSave));
-      sessionStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(userToSave));
+      localStorage.setItem('authToken', token);
 
       dispatch({ type: 'AUTH_SUCCESS', payload: userToSave });
       return { success: true };
@@ -81,28 +81,51 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
     dispatch({ type: 'LOGOUT' });
   }, []);
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('user');
-    if (storedUser) {
-      try {
-        dispatch({ type: 'AUTH_SUCCESS', payload: JSON.parse(storedUser) });
-      // eslint-disable-next-line no-unused-vars
-      } catch (e) {
-        sessionStorage.removeItem('user');
-        dispatch({ type: 'AUTH_FAILURE', payload: null });
+    let mounted = true;
+    const initAuth = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          dispatch({ type: 'AUTH_SUCCESS', payload: JSON.parse(storedUser) });
+        } catch (e) {
+          localStorage.removeItem('user');
+        }
       }
-    } else {
-      dispatch({ type: 'AUTH_FAILURE', payload: null });
-    }
+
+      try {
+        const res = await api.get('/auth/me');
+        const me = res.data?.user || null;
+        if (me && mounted) {
+          const userToSave = { id: me.id, name: me.name, email: me.email };
+          localStorage.setItem('user', JSON.stringify(userToSave));
+          dispatch({ type: 'AUTH_SUCCESS', payload: userToSave });
+        } else if (mounted) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('authToken');
+          dispatch({ type: 'AUTH_FAILURE', payload: null });
+        }
+      } catch (err) {
+        if (mounted) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('authToken');
+          dispatch({ type: 'AUTH_FAILURE', payload: null });
+        }
+      }
+    };
+
+    initAuth();
+    return () => { mounted = false; };
   }, []);
 
   const value = {
     ...state,
+    authChecked: state.loading === false,
     login,
     register,
     logout,

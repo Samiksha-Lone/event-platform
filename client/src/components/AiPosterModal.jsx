@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon, Sparkles, X, Loader2, Wand2, Check } from 'lucide-react';
 
-const AiPosterModal = ({ isOpen, onClose, onApply }) => {
+const AiPosterModal = ({ isOpen, onClose, onApply, title = '', description = '' }) => {
   const [style, setStyle] = useState('vibrant');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [inputTitle, setInputTitle] = useState(title || '');
+  const [inputSubtitle, setInputSubtitle] = useState(description || '');
 
   if (!isOpen) return null;
 
@@ -29,12 +31,105 @@ const AiPosterModal = ({ isOpen, onClose, onApply }) => {
   const handleGenerate = () => {
     setIsGenerating(true);
     setSelectedImage(null);
-    setTimeout(() => {
-      const collection = posterCollections[style];
-      const randomImg = collection[Math.floor(Math.random() * collection.length)];
-      setSelectedImage(randomImg);
+
+    const collection = posterCollections[style];
+    const bgUrl = collection[Math.floor(Math.random() * collection.length)];
+
+    // Create a canvas-based poster so the output is unique per title/description
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = bgUrl;
+    img.onload = () => {
+      try {
+        const w = 1200;
+        const h = 675;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        // draw background image covering canvas
+        const iw = img.width;
+        const ih = img.height;
+        const scale = Math.max(w / iw, h / ih);
+        const sw = iw * scale;
+        const sh = ih * scale;
+        const sx = (w - sw) / 2;
+        const sy = (h - sh) / 2;
+        ctx.drawImage(img, sx, sy, sw, sh);
+
+        // overlay gradient for better text contrast
+        const grad = ctx.createLinearGradient(0, h, 0, h * 0.45);
+        grad.addColorStop(0, 'rgba(0,0,0,0.65)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, h * 0.45, w, h * 0.55);
+
+        // draw title
+        const titleText = inputTitle || 'Your Event Title';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'left';
+        ctx.lineWidth = 6;
+        ctx.font = 'bold 56px Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial';
+        // soft shadow
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 12;
+        // wrap title into two lines if too long
+        const wrapText = (text, x, y, maxWidth, lineHeight) => {
+          const words = text.split(' ');
+          let line = '';
+          let curY = y;
+          for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+              ctx.fillText(line.trim(), x, curY);
+              line = words[n] + ' ';
+              curY += lineHeight;
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line.trim(), x, curY);
+          return curY;
+        };
+
+        const padding = 64;
+        ctx.font = 'bold 56px Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(0,0,0,0.7)';
+        ctx.shadowBlur = 16;
+        const lastY = wrapText(titleText, padding, h - 180, w - padding * 2, 66);
+
+        // draw subtitle
+        if (inputSubtitle) {
+          ctx.shadowBlur = 10;
+          ctx.font = '400 28px Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial';
+          ctx.fillStyle = 'rgba(255,255,255,0.92)';
+          wrapText(inputSubtitle, padding, lastY + 36, w - padding * 2, 38);
+        }
+
+        // small watermark
+        ctx.shadowBlur = 0;
+        ctx.font = '500 14px Inter, system-ui';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillText('EventHub • AI Poster', w - 220, h - 20);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        setSelectedImage(dataUrl);
+      } catch (err) {
+        // fallback to background URL
+        setSelectedImage(bgUrl);
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+
+    img.onerror = () => {
+      setSelectedImage(bgUrl);
       setIsGenerating(false);
-    }, 1500);
+    };
   };
 
   const handleApply = () => {
@@ -67,6 +162,29 @@ const AiPosterModal = ({ isOpen, onClose, onApply }) => {
 
         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
           <div className="space-y-6">
+            <div>
+              <label className="block mb-1.5 text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+                Poster Title
+              </label>
+              <input
+                value={inputTitle}
+                onChange={(e) => setInputTitle(e.target.value)}
+                placeholder="Event title (e.g. React Hack Night)"
+                className="w-full px-4 py-2.5 text-sm bg-white border-2 border-neutral-200 rounded-lg dark:bg-neutral-800 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1.5 text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+                Subtitle / Short description
+              </label>
+              <input
+                value={inputSubtitle}
+                onChange={(e) => setInputSubtitle(e.target.value)}
+                placeholder="Optional: date, location, short hook"
+                className="w-full px-4 py-2.5 text-sm bg-white border-2 border-neutral-200 rounded-lg dark:bg-neutral-800 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
             <div>
               <label className="block mb-2 text-xs font-black tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
                 Choose Aesthetic Style

@@ -9,7 +9,17 @@ const normalizeEventId = (event) => {
     id = typeof event._id === 'string' ? event._id : event._id.toString();
   }
   if (!id) id = Math.random().toString(36).substr(2, 9);
-  return { ...event, id };
+  
+  // Ensure rsvps is always an array
+  const rsvps = Array.isArray(event.rsvps) ? event.rsvps : [];
+  
+  return { 
+    ...event, 
+    id,
+    rsvps,
+    // Ensure attending count matches rsvps length
+    attending: rsvps.length || event.attending || 0
+  };
 };
 
 const normalizeEvents = (events = []) => events.map(normalizeEventId);
@@ -25,7 +35,6 @@ const initialState = {
     hasMore: false
   }
 };
-
 
 const getMemberId = (m) => {
   if (!m) return null;
@@ -126,11 +135,21 @@ function eventReducer(state, action) {
 export function EventProvider({ children }) {
   const [state, dispatch] = useReducer(eventReducer, initialState);
   const { user } = useAuth();
+  const auth = useAuth();
+
+  // Track last fetch time to prevent React StrictMode double-invoke issues
+  const lastFetchTimeRef = React.useRef(0);
 
   const fetchEvents = useCallback(async (page = 1, limit = 10, category = 'all', append = false) => {
+    // Prevent duplicate calls within 200ms (React StrictMode fix)
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < 200) {
+      return;
+    }
+    lastFetchTimeRef.current = now;
+
     dispatch({ type: 'FETCH_START' });
     try {
-      const token = sessionStorage.getItem('authToken');
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
@@ -139,9 +158,7 @@ export function EventProvider({ children }) {
         params.append('category', category);
       }
       
-      const response = await api.get(`/event?${params.toString()}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await api.get(`/event?${params.toString()}`);
       const data = response.data;
       
       dispatch({ 
@@ -162,66 +179,85 @@ export function EventProvider({ children }) {
 
   const deleteEvent = async (id) => {
     try {
-      const token = sessionStorage.getItem('authToken');
-      await api.delete(`/event/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      await api.delete(`/event/${id}`);
       dispatch({ type: 'DELETE_EVENT', payload: id });
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message || 'Failed to delete event' };
     }
   };
-
   const rsvp = async (eventId) => {
     if (!user) return { success: false, error: 'Please login to RSVP' };
+    if (!eventId) return { success: false, error: 'Invalid event ID' };
+    
     try {
-      const token = sessionStorage.getItem('authToken');
-      const response = await api.post(`/event/${eventId}/rsvp`, {}, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      // Ensure eventId is a string
+      const id = String(eventId);
       
+      // Optimistically update context immediately
+      const userId = user.id || user._id;
+      dispatch({ type: 'RSVP', payload: { eventId: id, userId } });
+      
+      // Make API call
+      const response = await api.post(`/event/${id}/rsvp`, {});
+      
+      // Update with server response for authoritative data
       if (response.data?.event) {
         const normalizedEvent = normalizeEventId(response.data.event);
         dispatch({ type: 'EDIT_EVENT', payload: normalizedEvent });
-      } else {
-        dispatch({ type: 'RSVP', payload: { eventId, userId: user.id || user._id } });
       }
-      
-      setTimeout(() => fetchEvents(), 100);
       
       return { success: true };
     } catch (err) {
+      console.error('[EventContext] RSVP error:', err);
+      
+      // Rollback on error
+      const userId = user.id || user._id;
+      dispatch({ type: 'CANCEL_RSVP', payload: { eventId: String(eventId), userId } });
+      
       return { success: false, error: err.response?.data?.message || err.message || 'Failed to RSVP' };
     }
   };
 
   const cancelRsvp = async (eventId) => {
     if (!user) return { success: false, error: 'Please login' };
+    if (!eventId) return { success: false, error: 'Invalid event ID' };
+    
     try {
-      const token = sessionStorage.getItem('authToken');
-      const response = await api.delete(`/event/${eventId}/rsvp`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      // Ensure eventId is a string
+      const id = String(eventId);
+      const userId = user.id || user._id;
       
+      // Optimistically update context immediately
+      dispatch({ type: 'CANCEL_RSVP', payload: { eventId: id, userId } });
+      
+      // Make API call
+      const response = await api.delete(`/event/${id}/rsvp`);
+      
+      // Update with server response for authoritative data
       if (response.data?.event) {
         const normalizedEvent = normalizeEventId(response.data.event);
         dispatch({ type: 'EDIT_EVENT', payload: normalizedEvent });
-      } else {
-        dispatch({ type: 'CANCEL_RSVP', payload: { eventId, userId: user.id || user._id } });
       }
-      
-      setTimeout(() => fetchEvents(), 100);
       
       return { success: true };
     } catch (err) {
+      console.error('[EventContext] Cancel RSVP error:', err);
+      
+      // Rollback on error
+      const userId = user.id || user._id;
+      dispatch({ type: 'RSVP', payload: { eventId: String(eventId), userId } });
+      
       return { success: false, error: err.response?.data?.message || err.message || 'Failed to cancel RSVP' };
     }
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    // Wait until auth initialization completes to avoid 401 race on startup
+    if (auth && auth.authChecked) {
+      fetchEvents();
+    }
+  }, [fetchEvents, auth]);
 
   const value = {
     ...state,

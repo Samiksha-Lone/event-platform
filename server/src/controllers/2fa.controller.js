@@ -34,7 +34,6 @@ async function setup2FA(req, res) {
       qrCode: qrCodeUrl
     });
   } catch (error) {
-    console.error('Setup 2FA error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 }
@@ -81,7 +80,6 @@ async function enable2FA(req, res) {
 
     res.json({ message: '2FA enabled successfully' });
   } catch (error) {
-    console.error('Enable 2FA error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 }
@@ -125,7 +123,6 @@ async function disable2FA(req, res) {
 
     res.json({ message: '2FA disabled successfully' });
   } catch (error) {
-    console.error('Disable 2FA error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 }

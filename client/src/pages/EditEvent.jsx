@@ -181,23 +181,18 @@ export default function EditEvent() {
         });
         formdata.append('image', form.imageFile);
 
-        res = await api.put(`/event/${id}`, formdata, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          withCredentials: true
-        });
+        res = await api.put(`/event/${id}`, formdata);
       }
       else if (imageMode === 'url' && form.imageUrl) {
         res = await api.put(
           `/event/${id}`,
-          { ...eventData, imageUrl: form.imageUrl },
-          { withCredentials: true }
+          { ...eventData, imageUrl: form.imageUrl }
         );
       }
       else {
         res = await api.put(
           `/event/${id}`,
-          eventData,
-          { withCredentials: true }
+          eventData
         );
       }
 
@@ -663,6 +658,8 @@ export default function EditEvent() {
           setForm(prev => ({ ...prev, imageUrl: url }));
           setImageMode('url');
         }}
+        title={form.title}
+        description={form.description}
       />
     </div>
   );

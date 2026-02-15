@@ -17,7 +17,7 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState('created');
   const [rsvpLoading, setRsvpLoading] = useState({});
 
-  const currentUserId = user?.id || user?._id || null;
+  const currentUserId = user ? String(user.id || user._id || '') : null;
 
   useEffect(() => {
     if (fetchEvents) {
@@ -43,12 +43,8 @@ export default function UserDashboard() {
 
   const attendingEvents =
     events.filter((e) => {
-      const ownerId = getOwnerId(e);
-      const isOwner = ownerId && currentUserId && String(ownerId) === String(currentUserId);
       const isAttending = isUserRsvped(e, currentUserId);
-      
-
-      return isAttending && !isOwner;
+      return isAttending;
     }) || [];
 
   const handleViewDetails = (eventId) => {
@@ -57,11 +53,19 @@ export default function UserDashboard() {
 
   const handleRsvp = async (eventId) => {
     setRsvpLoading(prev => ({ ...prev, [eventId]: true }));
-    const result = await cancelRsvp(eventId);
-    if (!result?.success) {
-      addToast(`Failed to leave event: ${result?.error || 'Unknown error'}`, 'error');
+    try {
+      const result = await cancelRsvp(eventId);
+      if (result?.success) {
+        addToast('Successfully left event', 'success');
+      } else {
+        addToast(`Failed to leave event: ${result?.error || 'Unknown error'}`, 'error');
+      }
+    } catch (err) {
+      console.error('Cancel RSVP error:', err);
+      addToast('Failed to leave event', 'error');
+    } finally {
+      setRsvpLoading(prev => ({ ...prev, [eventId]: false }));
     }
-    setRsvpLoading(prev => ({ ...prev, [eventId]: false }));
   };
 
   const handleNavigate = (path) => {

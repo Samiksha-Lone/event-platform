@@ -115,41 +115,32 @@ const CreateEvent = () => {
       return;
     }
 
-    try {
+      try {
 
-      const token = sessionStorage.getItem('authToken');
-      if (!token) {
-        addToast('Please login again before creating an event.', 'error');
-        setLoading(false);
-        return;
-      }
+        let response;
 
-      let response;
-
-      if (imageMode === "file") {
-        const formdata = new FormData();
-        formdata.append("title", form.title);
-        formdata.append("description", form.description);
-        formdata.append("category", form.category);
-        formdata.append("capacity", form.capacity);
-        formdata.append("date", form.date);
-        formdata.append("time", form.time);
-        formdata.append("eventType", form.eventType);
-        formdata.append("image", form.imageFile);
-        
-        if (form.eventType === "offline") {
-          formdata.append("location", form.location);
-        } else {
-          formdata.append("meetingPlatform", form.meetingPlatform);
-          formdata.append("meetingLink", form.meetingLink);
-          if (form.meetingPassword) {
-            formdata.append("meetingPassword", form.meetingPassword);
+        if (imageMode === "file") {
+          const formdata = new FormData();
+          formdata.append("title", form.title);
+          formdata.append("description", form.description);
+          formdata.append("category", form.category);
+          formdata.append("capacity", form.capacity);
+          formdata.append("date", form.date);
+          formdata.append("time", form.time);
+          formdata.append("eventType", form.eventType);
+          formdata.append("image", form.imageFile);
+          
+          if (form.eventType === "offline") {
+            formdata.append("location", form.location);
+          } else {
+            formdata.append("meetingPlatform", form.meetingPlatform);
+            formdata.append("meetingLink", form.meetingLink);
+            if (form.meetingPassword) {
+              formdata.append("meetingPassword", form.meetingPassword);
+            }
           }
-        }
 
-        response = await api.post('/event/create', formdata, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+          response = await api.post('/event/create', formdata);
       } else {
         const eventData = {
           title: form.title,
@@ -172,15 +163,7 @@ const CreateEvent = () => {
           }
         }
 
-        response = await api.post(
-          '/event/create',
-          eventData,
-          { withCredentials: true ,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        response = await api.post('/event/create', eventData);
       }
 
       const mongoId = response.data.event._id?.toString() || "";
@@ -545,7 +528,7 @@ const CreateEvent = () => {
                         setImageMode("url");
                         setIsPosterModalOpen(true);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-bold rounded-lg border border-indigo-200 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-indigo-600 border border-indigo-200 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
                     >
                       <Palette size={16} />
                       ✨ AI Poster
@@ -634,6 +617,8 @@ const CreateEvent = () => {
           setForm(prev => ({ ...prev, imageUrl: url }));
           setImageMode('url');
         }}
+        title={form.title}
+        description={form.description}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api } from '../utils/api';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
@@ -13,7 +13,7 @@ export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { rsvp, cancelRsvp } = useEvents();
+  const { rsvp, cancelRsvp, events: contextEvents } = useEvents();
   const { theme, toggleTheme } = useTheme();
   const { addToast } = useToast();
 
@@ -21,6 +21,11 @@ export default function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rsvpLoading, setRsvpLoading] = useState(false);
+
+  // Check if event exists in context
+  const contextEvent = useMemo(() => {
+    return contextEvents.find(ev => String(ev._id || ev.id) === String(id));
+  }, [contextEvents, id]);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -65,7 +70,21 @@ export default function EventDetails() {
     if (id) fetchEvent();
   }, [id]);
 
-  const currentUserId = user?.id || user?._id;
+  // Sync event with context when context events change
+  useEffect(() => {
+    if (contextEvent && event) {
+      const updatedEvent = {
+        ...event,
+        ...contextEvent,
+        id: contextEvent._id || id,
+        attending: contextEvent.rsvps?.length || 0,
+        organizer: contextEvent.owner?.name || event.organizer || 'Unknown organizer',
+      };
+      setEvent(updatedEvent);
+    }
+  }, [contextEvent, id]);
+
+  const currentUserId = user?.id || user?._id || user?._id?.toString();
   const isJoined = event ? isUserRsvped(event, currentUserId) : false;
   const isFull = event ? isEventFull(event) : false;
   const availableSpots = event ? getAvailableSpots(event) : 0;
@@ -102,27 +121,15 @@ export default function EventDetails() {
   const handleRsvp = async () => {
     try {
       setRsvpLoading(true);
-      const result = await rsvp(event.id);
+      const eventId = event._id || event.id;
+      if (!eventId) {
+        addToast('Event ID not found', 'error');
+        return;
+      }
+      
+      const result = await rsvp(eventId);
 
       if (result.success) {
-        const response = await api.get(`/event/${event.id}`);
-        if (response.data?.event) {
-          const ev = response.data.event;
-          
-          setEvent({
-            ...ev,
-            id: ev._id || event.id,
-            title: ev.title,
-            description: ev.description,
-            date: ev.date ? new Date(ev.date).toLocaleDateString() : 'N/A',
-            time: ev.time || '09:00',
-            location: ev.location || 'TBA',
-            capacity: ev.capacity || 0,
-            attending: ev.rsvps?.length || 0,
-            organizer: ev.owner?.name || 'Unknown organizer',
-            image: ev.image || '',
-          });
-        }
         addToast('RSVP successful', 'success');
       } else {
         addToast(result.error || 'Failed to RSVP', 'error');
@@ -138,32 +145,21 @@ export default function EventDetails() {
   const handleCancel = async () => {
     try {
       setRsvpLoading(true);
-      const result = await cancelRsvp(event.id);
+      const eventId = event._id || event.id;
+      if (!eventId) {
+        addToast('Event ID not found', 'error');
+        return;
+      }
+      
+      const result = await cancelRsvp(eventId);
 
       if (result.success) {
-        const response = await api.get(`/event/${event.id}`);
-        if (response.data?.event) {
-          const ev = response.data.event;
-          setEvent({
-            ...ev,
-            id: ev._id || event.id,
-            title: ev.title,
-            description: ev.description,
-            date: ev.date ? new Date(ev.date).toLocaleDateString() : 'N/A',
-            time: ev.time || '09:00',
-            location: ev.location || 'TBA',
-            capacity: ev.capacity || 0,
-            attending: ev.rsvps?.length || 0,
-            organizer: ev.owner?.name || 'Unknown organizer',
-            image: ev.image || '',
-          });
-        }
         addToast('RSVP cancelled', 'info');
       } else {
         addToast(result.error || 'Failed to cancel RSVP', 'error');
       }
-    // eslint-disable-next-line no-unused-vars
     } catch (err) {
+      console.error('[EventDetails] Cancel RSVP Error:', err);
       addToast('Could not cancel RSVP. Please try again.', 'error');
     } finally {
       setRsvpLoading(false);

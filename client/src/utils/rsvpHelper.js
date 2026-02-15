@@ -2,28 +2,37 @@
 export const getRsvpUserId = (rsvp) => {
   if (!rsvp) return null;
   if (typeof rsvp === 'string') return rsvp;
-  return rsvp._id || rsvp.id || null;
+  if (typeof rsvp === 'object' && (rsvp._id || rsvp.id)) {
+    return rsvp._id || rsvp.id;
+  }
+  return null;
 };
 
 export const isUserRsvped = (event, userId) => {
-  if (!event || !event.rsvps || !userId) {
+  if (!event || !userId) {
     return false;
   }
   
-  const isRsvped = event.rsvps.some((rsvp) => {
+  // Ensure rsvps is an array
+  const rsvps = Array.isArray(event.rsvps) ? event.rsvps : [];
+  if (rsvps.length === 0) {
+    return false;
+  }
+  
+  const isRsvped = rsvps.some((rsvp) => {
     const rsvpId = getRsvpUserId(rsvp);
-    const match = rsvpId && String(rsvpId) === String(userId);
+    if (!rsvpId) return false;
     
-    
+    const match = String(rsvpId).trim() === String(userId).trim();
     return match;
   });
-  
   
   return isRsvped;
 };
 
 export const getRsvpCount = (event) => {
-  return event?.rsvps?.length || 0;
+  const rsvps = Array.isArray(event?.rsvps) ? event.rsvps : [];
+  return rsvps.length;
 };
 
 export const isEventFull = (event) => {
