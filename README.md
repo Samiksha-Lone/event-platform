@@ -1,342 +1,145 @@
-# EventHub – MERN Event Management Platform
+# EventHub
 
-A full-stack event management platform built with the **MERN stack** (MongoDB, Express, React, Node.js). Create events, discover exciting activities, and RSVP with real-time synchronization across all pages.
+A modern event platform for creating, discovering, and managing events with secure user access and RSVP workflows.
 
-**Live Demo:** https://eventhub-eight.vercel.app/
+## Links
 
----
+- 🔗 Live Demo: https://eventhub-eight.vercel.app/
+- 📁 GitHub: https://github.com/Samiksha-Lone/event-platform
 
-## ✨ Core Features
+## Problem Statement
 
-### 🛡️ User Authentication
-- Email/password based registration and login
-- JWT token-based authentication with HTTP-only cookies
-- Secure password hashing using bcrypt
-- Session persistence across pages
-- Protected routes and API endpoints
+Organizers and attendees need a reliable way to manage local and virtual events while keeping sign-ups, capacity, and event details synchronized across devices. Many event platforms are fragmented, lack real-time RSVP feedback, and do not support easy event marketing assets for organizers.
 
-### 📅 Event Management
-- **Create Events** - Add detailed event information (title, description, date, time, location, category, capacity, image)
-- **Browse Events** - View all upcoming events with pagination
-- **Event Details** - See full event information, attendee count, and capacity status
-- **Edit/Delete Events** - Modify or remove events you created
-- **Category Filtering** - Filter by event types (Tech, Music, Sports, Food, Health, Education, Workshop, Social)
-- **Search** - Find events by title or description
-- **AI Event Description Generator** - Automatically generate professional event descriptions with one click
-- **AI Event Poster Generator** - Create eye-catching event posters using AI
+## Problem–Solution Mapping
 
-### 👥 RSVP System (Recently Enhanced)
-- **Join Events** - RSVP to events with one click
-- **Capacity Management** - Cannot RSVP if event is full
-- **Real-time Sync** - RSVP status updates instantly across Dashboard, Event Details, and User Dashboard
-- **Leave Events** - Cancel RSVP anytime to free up a spot
-- **Attendee Tracking** - View real-time attendance count and available spots
-- **Smart Button Display** - Button shows "RSVP" or "Leave Event" based on status
+| Problem | Solution |
+| --- | --- |
+| Event discovery is scattered and hard to filter | Centralized event feed with category filters and search |
+| RSVP status is unclear and event capacity is not enforced | RSVP system with capacity checks and live attendance counts |
+| Event creation is repetitive and content quality varies | Structured event creation flow with easy editing and image support |
+| Secure registration and session management are needed | JWT-based authentication with HTTP-only cookies and route protection |
+| UI needs to work well on desktop and mobile | Responsive React + Tailwind interface with dark mode |
 
-### 👤 User Dashboard
-- **My Events Tab** - View all events you created
-  - Quick access to edit or delete events
-  - See attendee count for each event
-  
-- **Attending Tab** - View all events you've RSVP'd to
-  - One-click access to leave events
-  - Jump directly to event details
-  - See upcoming events you plan to attend
+## What is Implemented
 
-- **Dashboard Stats** - See count of events created and events attending
+- **User authentication** with registration, login, session persistence, and protected routes
+- **Event creation and management** for organizers, including edit and delete flows
+- **Event browsing** with search, category filters, and details pages
+- **RSVP workflow** with join/cancel options, capacity enforcement, and attendee tracking
+- **User dashboard** showing organizer events and attending events in one view
+- **Structured event creation** with guided input for descriptions and media
+- **Security middleware** including rate limiting, validation, sanitization, and HTTP headers
+- **Responsive design** to support mobile, tablet, and desktop devices
 
-### 🎨 UI/UX Features
-- **Dark Mode** - Toggle between light and dark themes
-- **Responsive Design** - Mobile-friendly interface (Works on all devices)
-- **Real-time Toast Notifications** - Instant feedback for all actions
-- **Loading States** - Skeleton loaders during data fetching
-- **Event Cards** - Beautiful cards with event image, date, location, and RSVP button
-- **Capacity Indicators** - Visual display of available spots (e.g., "12/50 attending")
+## Solution Overview
 
-### 🤖 AI-Powered Features
-- **AI Event Description Generator** - Generate compelling event descriptions automatically
-  - Click "Generate Description" while creating/editing an event
-  - Powered by AI language models
-  - Helps create professional descriptions instantly
-  
-- **AI Event Poster Generator** - Create attractive event posters with AI
-  - Click "Generate Poster" to create visual event posters
-  - AI-powered visual generation
-  - Perfect for social media sharing
+EventHub is built as a full-stack application with a React frontend and Express/MongoDB backend. The client interacts with a REST API to authenticate users, fetch event data, and update RSVP state. State management is handled via React Context, while backend middleware protects routes and validates incoming requests.
 
-### 🔐 Security
-- JWT-based stateless authentication
-- HTTP-only cookies to prevent XSS attacks
-- Rate limiting on API endpoints
-- Input validation and sanitization
-- NoSQL injection prevention
+The platform supports both event organizers and attendees:
 
----
+- Organizers can create event listings, adjust details, and monitor attendance.
+- Attendees can search, RSVP, and view upcoming events in a personal dashboard.
 
-## 🏗️ Tech Stack
+## Project Highlights
 
-### Frontend
-- **React 18** with Hooks for state management
-- **Vite** for fast development and optimized builds
-- **Tailwind CSS** for responsive styling
-- **React Router** for navigation
-- **Axios** for API calls
-- **Context API** for global state (Auth, Events, Theme, Toast)
-- **Lucide React & React Icons** for UI icons
+- Clean product-style front-end built with **React 19** and **Tailwind CSS**
+- Secure backend implemented using **Express.js**, **JWT**, and **MongoDB**
+- Advanced form validation with **express-validator** and custom validation middleware
+- Global state management using **React Context** for auth, events, theme, and notifications
+- Protects API access with **rate limiting**, **CORS**, **helmet**, and input sanitization
+- Interactive UI with **dark mode**, toast notifications, skeleton loaders, and responsive layout
 
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web framework
-- **MongoDB** with Mongoose - NoSQL database
-- **JWT** - Secure token authentication
-- **bcryptjs** - Password hashing
-- **Multer** - File upload handling
-- **Cors & Helmet** - Security headers and CORS
+## Features
 
----
+- ✅ User registration and secure login
+- ✅ Event creation, update, and deletion
+- ✅ Search and category filtering for event discovery
+- ✅ RSVP management with attendance limits
+- ✅ Personal dashboard for created and attending events
+- ✅ Guided event creation and media upload support
+- ✅ Real-time UI feedback with toast notifications
+- ✅ Dark mode and responsive design
+- ✅ Backend validation, sanitization, and security middleware
 
-## ⚡ Quick Start
+## Screenshots
 
-### Prerequisites
-- Node.js v18+ and npm
-- MongoDB (Cloud Atlas or local)
-- Git
+![Dashboard screenshot](outputs/dashboard.webp)
 
-### Setup (5 minutes)
+![Create event screenshot](outputs/create-event.webp)
 
-**1. Clone and navigate:**
+## Tech Stack
+
+- **Frontend:** React, Vite, Tailwind CSS, React Router, Axios
+- **Backend:** Node.js, Express, MongoDB, Mongoose
+- **Security:** JWT, bcryptjs, helmet, express-rate-limit, express-mongo-sanitize
+- **Media:** Image upload support for event posters and galleries
+- **Utilities:** Cookie parser, multer, nodemailer, csurf
+
+## Installation / Setup Steps
+
+1. Clone the repository:
+
 ```bash
 git clone https://github.com/Samiksha-Lone/event-platform.git
 cd event-platform
 ```
 
-**2. Backend setup:**
+2. Install server dependencies:
+
 ```bash
 cd server
-cp .env.example .env
-# Edit .env and add your MongoDB URI and JWT_SECRET
 npm install
-npm run dev
 ```
-Backend runs on `http://localhost:3000`
 
-**3. Frontend setup (new terminal):**
-```bash
-cd client
-npm install
-npm run dev
-```
-Frontend runs on `http://localhost:5173`
+3. Create and configure server environment variables:
 
-**Done!** Open http://localhost:5173 and start using the app.
-
-### Environment Variables Needed
-
-**Server `.env`:**
 ```env
 PORT=3000
 NODE_ENV=development
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/eventdb
-JWT_SECRET=your-secret-key-min-32-chars
+MONGO_URI=your-mongodb-connection-string
+JWT_SECRET=your-secret-key
 CLIENT_URL=http://localhost:5173
 ```
 
-**Client `.env`:**
-```env
-VITE_API_URL=http://localhost:3000
-```
+4. Start the backend:
 
----
-
-## 📂 Project Structure
-
-```
-event-platform/
-├── client/                    # React Frontend
-│   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   ├── pages/            # Full page components
-│   │   ├── context/          # Global state (Auth, Events, Theme, Toast)
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── utils/            # Helper functions (API, RSVP helpers)
-│   │   └── routes/           # Route definitions
-│   └── package.json
-│
-├── server/                    # Express Backend
-│   ├── src/
-│   │   ├── controllers/       # Business logic
-│   │   ├── models/           # MongoDB schemas
-│   │   ├── routes/           # API endpoints
-│   │   ├── middlewares/      # Auth, validation
-│   │   ├── services/         # Helper services
-│   │   └── db/               # Database connection
-│   └── package.json
-│
-└── README.md
-```
-
----
-
-## 🚀 How to Use
-
-### Register & Login
-1. Visit http://localhost:5173
-2. Click "Sign Up" and create an account
-3. Login with your email and password
-4. You're in! 
-
-### Create an Event
-1. Click "+ Create Event" button (on dashboard or user dashboard)
-2. Fill in event details:
-   - Title, description, date, time
-   - Event type (Online/In-Person)
-   - Location (for in-person) or meeting link (for online)
-   - Category and capacity
-   - Event image
-3. **Optional: Use AI Generators** (while creating/editing):
-   - Click **"✨ Generate Description"** - AI will create a professional event description for you
-   - Click **"🎨 Generate Poster"** - AI will create an attractive event poster
-4. Click "Create Event"
-5. Event appears on dashboard and your "My Events" tab
-
-### Find & Join Events
-1. Browse events on the **Dashboard**
-2. Use search bar to find specific events
-3. Filter by category or view all events
-4. Click "View" to see event details
-5. Click "RSVP" to join the event
-6. Event now appears in your **Attending Tab** in User Dashboard
-
-### Manage Events
-- **View Your Events**: Go to User Dashboard → "My Events" tab
-- **View Events Attending**: Go to User Dashboard → "Attending" tab
-- **Edit Your Event**: Click "Edit" on any event you created
-- **Delete Your Event**: Click "Delete" on any event you created
-- **Leave Event**: Click "Leave Event" on any attending event
-
----
-
-## 🔑 Key Improvements Made
-
-### RSVP System Enhancements (Latest)
-- **Optimistic Updates**: RSVP changes appear instantly without waiting for server
-- **Cross-page Sync**: RSVP status stays consistent across Dashboard, Event Details, and User Dashboard
-- **Smart Error Handling**: Failed RSVP reverts to original state
-- **Better ID Handling**: Robust comparison of user IDs (handles strings and ObjectIDs)
-- **Reliable Attendance Counts**: `attending` count always matches `rsvps` array length
-
-### Event Data Normalization
-- Every event guaranteed to have valid `rsvps` array
-- Consistent `attending` count across all pages
-- Proper user ID extraction for RSVP verification
-
-### UI/UX Enhancements
-- "Leave Event" button shows correctly when user has RSVP'd
-- Real-time capacity updates
-- Toast notifications for all actions
-- Smooth loading states
-
----
-
-## 📝 API Endpoints
-
-### Authentication
-```
-POST   /auth/register          - Create new account
-POST   /auth/login             - Login with email & password
-POST   /auth/logout            - Logout user
-GET    /auth/me                - Get current user info
-```
-
-### Events
-```
-GET    /event                  - Get all events (with pagination)
-GET    /event/:id              - Get single event details
-POST   /event/create           - Create new event (protected)
-PUT    /event/:id              - Update event (protected, owner only)
-DELETE /event/:id              - Delete event (protected, owner only)
-POST   /event/:id/rsvp         - Join event (protected)
-DELETE /event/:id/rsvp         - Leave event (protected)
-```
-
----
-
-## 🛠️ Available Scripts
-
-### Frontend
 ```bash
-npm run dev      # Start development server (port 5173)
-npm run build    # Build for production
-npm run preview  # Preview production build
-npm run lint     # Check code quality
+npm run dev
 ```
 
-### Backend
+5. Install frontend dependencies in a second terminal:
+
 ```bash
-npm run dev      # Start with auto-reload
-npm start        # Start production server
+cd ../client
+npm install
+npm run dev
 ```
 
----
+6. Open the app at:
 
-## 🐛 Common Issues & Solutions
-
-### MongoDB Connection Error
-**Problem**: `Error: connect ECONNREFUSED`
-- Check `MONGO_URI` in `.env` is correct
-- Verify IP is whitelisted in MongoDB Atlas
-- Ensure credentials are accurate
-
-### Port Already in Use
-**Problem**: `Error: listen EADDRINUSE: address already in use :::3000`
 ```bash
-# Windows: Kill process on port 3000
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-
-# Mac/Linux
-lsof -i :3000
-kill -9 <PID>
+http://localhost:5173
 ```
 
-### Login Not Working
-1. Check backend is running: `curl http://localhost:3000`
-2. Verify `VITE_API_URL` in client `.env`
-3. Check browser console for errors
-4. Clear browser cookies and try again
+## Key Learnings
 
-### RSVP Button Not Updating
-- Clear browser cache
-- Check that backend is running
-- Verify MongoDB connection is working
+- Built a full-stack event management product with end-to-end authentication and access control
+- Implemented reliable RSVP capacity checks and event attendance workflows
+- Used React Context to coordinate client-side state across multiple pages
+- Added developer-friendly backend protections using validation, rate limiting, and sanitization
+- Delivered a modern UI experience with responsive layouts, dark mode, and modal-driven workflows
 
----
+## Future Improvements
 
-## 📞 Support
+- Add real-time event updates with WebSockets
+- Implement richer organizer analytics and reporting
+- Add email / SMS notifications for RSVP updates
+- Enable calendar export and ticketing workflows
+- Add multi-language support and improved accessibility
 
-- **Issues**: Open on GitHub
-- **Questions**: Check existing issues or create a new one
-- **Contact**: Create an issue with label "question"
+## 📬 Contact
 
----
-
-## 🎯 Future Features (Roadmap)
-
-- [ ] User profiles with bio and avatar
-- [ ] Event reviews and ratings
-- [ ] Advanced search and filtering
-- [ ] Email notifications
-- [ ] User preferences and recommendations
-- [ ] Two-factor authentication (2FA)
-- [ ] Analytics dashboard for organizers
-- [ ] Mobile app (React Native)
-
----
-
-## 📄 License
-
-This project is open source under the **ISC License**.
-
----
-
-**Happy event planning! 🎉**
+**Samiksha Balaji Lone**  
+📧 samikshalone2@gmail.com  
+🔗 [LinkedIn](https://linkedin.com/in/samiksha-lone) | [Portfolio](https://samiksha-lone.vercel.app/)
