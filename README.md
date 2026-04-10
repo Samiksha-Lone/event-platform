@@ -2,10 +2,10 @@
 
 A modern event platform for creating, discovering, and managing events with secure user access and RSVP workflows.
 
-## Links
+## 🔗 Links
 
-- 🔗 Live Demo: https://eventhub-eight.vercel.app/
-- 📁 GitHub: https://github.com/Samiksha-Lone/event-platform
+- **Live Demo**: [https://eventhub-eight.vercel.app/](https://eventhub-eight.vercel.app/)
+- **GitHub Repository**: [https://github.com/Samiksha-Lone/event-platform](https://github.com/Samiksha-Lone/event-platform)
 
 ## Problem Statement
 
@@ -13,60 +13,26 @@ Organizers and attendees need a reliable way to manage local and virtual events 
 
 ## Problem–Solution Mapping
 
-| Problem | Solution |
-| --- | --- |
-| Event discovery is scattered and hard to filter | Centralized event feed with category filters and search |
-| RSVP status is unclear and event capacity is not enforced | RSVP system with capacity checks and live attendance counts |
-| Event creation is repetitive and content quality varies | Structured event creation flow with easy editing and image support |
-| Secure registration and session management are needed | JWT-based authentication with HTTP-only cookies and route protection |
-| UI needs to work well on desktop and mobile | Responsive React + Tailwind interface with dark mode |
+To address fragmented event discovery, we provide a centralized event feed with category filters and search. For unclear RSVP status and unenforced capacity, we implement a RSVP system with capacity checks and live attendance counts. Event creation is streamlined with a structured flow including easy editing and image support. Secure registration uses JWT-based authentication with HTTP-only cookies and route protection. The UI is responsive across devices using React and Tailwind CSS with dark mode.
 
-## What is Implemented
+## System Architecture
 
-- **User authentication** with registration, login, session persistence, and protected routes
-- **Event creation and management** for organizers, including edit and delete flows
-- **Event browsing** with search, category filters, and details pages
-- **RSVP workflow** with join/cancel options, capacity enforcement, and attendee tracking
-- **User dashboard** showing organizer events and attending events in one view
-- **Structured event creation** with guided input for descriptions and media
-- **Security middleware** including rate limiting, validation, sanitization, and HTTP headers
-- **Responsive design** to support mobile, tablet, and desktop devices
-
-## Solution Overview
-
-EventHub is built as a full-stack application with a React frontend and Express/MongoDB backend. The client interacts with a REST API to authenticate users, fetch event data, and update RSVP state. State management is handled via React Context, while backend middleware protects routes and validates incoming requests.
-
-The platform supports both event organizers and attendees:
-
-- Organizers can create event listings, adjust details, and monitor attendance.
-- Attendees can search, RSVP, and view upcoming events in a personal dashboard.
-
-## Project Highlights
-
-- Clean product-style front-end built with **React 19** and **Tailwind CSS**
-- Secure backend implemented using **Express.js**, **JWT**, and **MongoDB**
-- Advanced form validation with **express-validator** and custom validation middleware
-- Global state management using **React Context** for auth, events, theme, and notifications
-- Protects API access with **rate limiting**, **CORS**, **helmet**, and input sanitization
-- Interactive UI with **dark mode**, toast notifications, skeleton loaders, and responsive layout
+- **Frontend:** React-based client with responsive design and dark mode support
+- **Backend:** Express.js server providing REST API endpoints
+- **Database:** MongoDB for storing user, event, and RSVP data
+- **Authentication:** JWT-based system with secure HTTP-only cookies
+- **Security:** Rate limiting, input validation, sanitization, and CORS protection
 
 ## Features
 
-- ✅ User registration and secure login
-- ✅ Event creation, update, and deletion
-- ✅ Search and category filtering for event discovery
-- ✅ RSVP management with attendance limits
-- ✅ Personal dashboard for created and attending events
-- ✅ Guided event creation and media upload support
-- ✅ Real-time UI feedback with toast notifications
-- ✅ Dark mode and responsive design
-- ✅ Backend validation, sanitization, and security middleware
-
-## Screenshots
-
-![Dashboard screenshot](outputs/dashboard.webp)
-
-![Create event screenshot](outputs/create-event.webp)
+- User registration and secure login
+- Event creation, update, and deletion
+- Search and category filtering for event discovery
+- RSVP management with attendance limits
+- Personal dashboard for created and attending events
+- Guided event creation with media upload support
+- Real-time UI feedback with toast notifications
+- Responsive design across devices
 
 ## Tech Stack
 
@@ -76,7 +42,7 @@ The platform supports both event organizers and attendees:
 - **Media:** Image upload support for event posters and galleries
 - **Utilities:** Cookie parser, multer, nodemailer, csurf
 
-## Installation / Setup Steps
+## Installation / Setup
 
 1. Clone the repository:
 
@@ -122,24 +88,18 @@ npm run dev
 http://localhost:5173
 ```
 
-## Key Learnings
+## Screenshots
 
-- Built a full-stack event management product with end-to-end authentication and access control
-- Implemented reliable RSVP capacity checks and event attendance workflows
-- Used React Context to coordinate client-side state across multiple pages
-- Added developer-friendly backend protections using validation, rate limiting, and sanitization
-- Delivered a modern UI experience with responsive layouts, dark mode, and modal-driven workflows
+![Dashboard screenshot](outputs/dashboard.webp)
 
-## Future Improvements
+![Create event screenshot](outputs/create-event.webp)
 
-- Add real-time event updates with WebSockets
-- Implement richer organizer analytics and reporting
-- Add email / SMS notifications for RSVP updates
-- Enable calendar export and ticketing workflows
-- Add multi-language support and improved accessibility
+## License
 
-## 📬 Contact
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-**Samiksha Balaji Lone**  
-📧 samikshalone2@gmail.com  
-🔗 [LinkedIn](https://linkedin.com/in/samiksha-lone) | [Portfolio](https://samiksha-lone.vercel.app/)
+## Credit
+
+If you use or build upon this project, please provide attribution:
+Samiksha Lone
+https://github.com/Samiksha-Lone
