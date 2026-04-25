@@ -565,8 +565,6 @@ export default function EditEvent() {
           </main>
         </div>
       </div>
-
-
     </div>
   );
 }

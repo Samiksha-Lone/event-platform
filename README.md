@@ -2,7 +2,9 @@
 
 > A full-stack MERN application for discovering, creating, and managing events with real-time RSVP capacity enforcement.
 
-**[🚀 Live Demo](https://eventhub-eight.vercel.app/)** &nbsp;|&nbsp; **[📂 GitHub Repository](https://github.com/Samiksha-Lone/event-platform)**
+## 🔗 Links
+- **Live Demo**: [https://eventhub-eight.vercel.app/](https://eventhub-eight.vercel.app/)
+- **GitHub Repository**: [https://github.com/Samiksha-Lone/event-platform](https://github.com/Samiksha-Lone/event-platform)
 
 ## Overview
 
