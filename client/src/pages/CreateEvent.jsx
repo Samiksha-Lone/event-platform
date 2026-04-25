@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { api } from '../utils/api';
 import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext";
 import { useEvents } from '../hooks/useEvents';
 import Navbar from "../components/Navbar";
 import { useToast } from "../context/ToastContext";
+import calculateViralScore from "../utils/viralScore";
+import getTimeSuggestion from "../utils/timeSuggestion";
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -15,6 +17,9 @@ const CreateEvent = () => {
 
   const [loading, setLoading] = useState(false);
   const [imageMode, setImageMode] = useState("file");
+
+  // Calculate viral score based on form data
+  const [viralScore, setViralScore] = useState(0);
 
   const [form, setForm] = useState({
     title: "",
@@ -31,6 +36,12 @@ const CreateEvent = () => {
     imageFile: null,
     imageUrl: "",
   });
+
+  // Update viral score whenever form changes
+  useMemo(() => {
+    const score = calculateViralScore(form);
+    setViralScore(score);
+  }, [form]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

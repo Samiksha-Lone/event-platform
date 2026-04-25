@@ -24,7 +24,7 @@ EventHub solves this with centralized event discovery, smart filtering, and a re
 - 📅 **Event Management** — Create, edit, delete events with image uploads (ImageKit CDN)
 - ✅ **RSVP System** — Real-time capacity enforcement; join or leave events instantly
 - 🔍 **Smart Discovery** — Search, category & date filtering, pagination
-- 👤 **User Profiles** — Favorites, follow/unfollow, hosted events
+- 👤 **User Dashboard** — Manage hosted events and track attended events
 - 📧 **Email Service** — Password recovery via Nodemailer
 - 🛡️ **Security** — bcryptjs hashing, input sanitization, rate limiting, CORS, Helmet.js
 - 📱 **Responsive UI** — Dark mode, mobile-optimized layout
@@ -40,7 +40,7 @@ EventHub solves this with centralized event discovery, smart filtering, and a re
 | **Storage** | ImageKit (CDN image hosting) |
 | **Email** | Nodemailer (SMTP) |
 | **State Management** | Context API |
-| **Deployment** | Vercel (frontend), Railway/Render (backend) |-
+| **Deployment** | Vercel (frontend), Render (backend) |-
 
 ## Architecture / Flow
 

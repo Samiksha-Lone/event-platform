@@ -254,10 +254,10 @@ export function EventProvider({ children }) {
 
   useEffect(() => {
     // Wait until auth initialization completes to avoid 401 race on startup
-    if (auth && auth.authChecked) {
+    if (auth?.authChecked === true) {
       fetchEvents();
     }
-  }, [fetchEvents, auth]);
+  }, [auth?.authChecked, fetchEvents]);
 
   const value = {
     ...state,

@@ -17,7 +17,9 @@ const AppRoutes = () => {
         <Routes>
             <Route path="/" element={<Navigate to="/user/login" replace />} />
             <Route path="/user/register" element={<Register />} />
+            <Route path="/register" element={<Navigate to="/user/register" replace />} />
             <Route path="/user/login" element={<Login />} />
+            <Route path="/login" element={<Navigate to="/user/login" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:id" element={<EventDetails />} />

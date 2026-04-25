@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import Navbar from '../components/Navbar';
@@ -6,6 +6,8 @@ import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon
 import { useAuth } from '../context/AuthContext';
 import { useEvents } from '../hooks/useEvents';
 import { useToast } from '../context/ToastContext';
+import calculateViralScore from '../utils/viralScore';
+import getTimeSuggestion from '../utils/timeSuggestion';
 
 export default function EditEvent() {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export default function EditEvent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [imageMode, setImageMode] = useState('keep');
+  const [viralScore, setViralScore] = useState(0);
 
   const [form, setForm] = useState({
     title: '',
@@ -65,6 +68,12 @@ export default function EditEvent() {
     };
     fetchEvent();
   }, [id, addToast]);
+
+  // Update viral score whenever form changes
+  useMemo(() => {
+    const score = calculateViralScore(form);
+    setViralScore(score);
+  }, [form]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

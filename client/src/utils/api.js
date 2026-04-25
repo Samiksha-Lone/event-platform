@@ -38,9 +38,20 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Only redirect if we're not already on a public page and have a user stored
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('authToken');
+      
+      if (storedUser || storedToken) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        
+        // Don't redirect if already on login/register pages
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes('/login') && !currentPath.includes('/register') && !currentPath.includes('/forgot') && !currentPath.includes('/reset')) {
+          window.location.href = '/user/login';
+        }
+      }
     }
     return Promise.reject(error);
   }

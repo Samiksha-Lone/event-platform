@@ -262,6 +262,8 @@ async function rsvpEvent(req, res) {
       .populate('owner', 'name email _id')
       .populate('rsvps', 'name email _id');
 
+    await cacheService.delPattern('events:*');
+    await cacheService.del(`event:${eventId}`);
 
     res.json({ message: 'RSVP successful', event: updatedEvent });
   } catch (err) {
@@ -293,6 +295,8 @@ async function unrsvpEvent(req, res) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
+    await cacheService.delPattern('events:*');
+    await cacheService.del(`event:${eventId}`);
 
     res.json({ message: 'RSVP cancelled', event: updatedEvent });
   } catch (err) {

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const userModel = require('../models/user.model');
 const {sendResetEmail} = require('../utils/mailer');
-const { verify2FAToken } = require('./2fa.controller');
+
 const { logAuthEvent, logSecurityEvent } = require('../middlewares/logger.middleware');
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
@@ -60,7 +60,7 @@ async function registerUser(req, res) {
 
 async function loginUser(req, res) {
     try {
-        const { email, password, twoFactorToken } = req.body;
+        const { email, password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
@@ -97,26 +97,7 @@ async function loginUser(req, res) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        if (user.twoFactorEnabled) {
-            if (!twoFactorToken) {
-                return res.status(200).json({ 
-                    message: '2FA required',
-                    requires2FA: true,
-                    userId: user._id
-                });
-            }
 
-            const is2FAValid = verify2FAToken(user.twoFactorSecret, twoFactorToken);
-            if (!is2FAValid) {
-                await user.incLoginAttempts();
-                logSecurityEvent('2FA_FAILED', { 
-                    userId: user._id, 
-                    email,
-                    attempts: user.loginAttempts + 1
-                });
-                return res.status(400).json({ message: 'Invalid 2FA token' });
-            }
-        }
 
         if (user.loginAttempts > 0 || user.lockUntil) {
             await user.resetLoginAttempts();
@@ -146,7 +127,6 @@ async function loginUser(req, res) {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                twoFactorEnabled: user.twoFactorEnabled
             }, 
             token 
         });

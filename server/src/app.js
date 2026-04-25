@@ -2,7 +2,6 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
 
 const authRoutes = require('./routes/auth.routes');
 const eventRoutes = require('./routes/event.routes');
@@ -48,7 +47,6 @@ app.use(apiLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(mongoSanitize());
 
 app.get('/', (req, res) => {
     res.send('Hello, World!');
