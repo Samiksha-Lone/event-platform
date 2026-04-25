@@ -6,6 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 
 const authRoutes = require('./routes/auth.routes');
 const eventRoutes = require('./routes/event.routes');
+const userRoutes = require('./routes/user.routes');
 const { apiLimiter } = require('./middlewares/rate-limiter.middleware');
 const { requestLogger } = require('./middlewares/logger.middleware');
 
@@ -47,6 +48,7 @@ app.use(apiLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(mongoSanitize());
 
 app.get('/', (req, res) => {
     res.send('Hello, World!');
@@ -54,17 +56,6 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/event', eventRoutes);
-
-const twoFARoutes = require('./routes/2fa.routes');
-app.use('/2fa', twoFARoutes);
-
-const reviewRoutes = require('./routes/review.routes');
-app.use('/review', reviewRoutes);
-
-const userRoutes = require('./routes/user.routes');
 app.use('/user', userRoutes);
-
-const apiRoutes = require('./routes/api.routes');
-app.use('/api', apiRoutes);
 
 module.exports = app;

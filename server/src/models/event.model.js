@@ -66,6 +66,7 @@ const eventSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
     }],
+    // Note: 'attendees' field below is planned for future detailed attendance tracking (currently unused)
     attendees: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
@@ -116,6 +117,7 @@ const eventSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // Note: Rating fields below are planned for reviews feature (currently not implemented)
     averageRating: {
         type: Number,
         default: 0,

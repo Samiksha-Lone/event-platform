@@ -1,106 +1,149 @@
-# EventHub
+# EventHub — Event Management Platform
 
-A full-stack MERN event management platform for creating, discovering, and managing both online and offline events with RSVP workflows, secure authentication, and community-focused features.
+> A full-stack MERN application for discovering, creating, and managing events with real-time RSVP capacity enforcement.
 
-## 🔗 Links
+**[🚀 Live Demo](https://eventhub-eight.vercel.app/)** &nbsp;|&nbsp; **[📂 GitHub Repository](https://github.com/Samiksha-Lone/event-platform)**
 
-- 🚀 **Live Demo**: [https://eventhub-eight.vercel.app/](https://eventhub-eight.vercel.app/)
-- 💻 **GitHub Repository**: [https://github.com/Samiksha-Lone/event-platform](https://github.com/Samiksha-Lone/event-platform)
+---
+
+## Overview
+
+EventHub is a centralized platform where users can create and discover both online and offline events, RSVP with real-time capacity management, and engage with a community through profiles and favorites.
+
+---
 
 ## Problem Statement
 
-Event organizers struggle with fragmented platforms for managing local and online events. Attendees need centralized event discovery with filtered categories. Both parties require reliable RSVP capacity enforcement, attendance tracking, and a simple interface without payment complexity.
+- Event organizers lack a single platform to manage online and offline events together
+- Attendees struggle to discover events that match their interests and availability
+- Manual RSVP tracking is unreliable and prone to over-booking
 
-## Problem–Solution Mapping
+---
 
-EventHub provides centralized event discovery via category-based filtering and full-text search. RSVP capacity is enforced in real-time with automatic availability checks. Event organizers use a structured creation form supporting both online (Zoom, Google Meet, Teams, Webex) and offline (location-based) events. Users authenticate securely via JWT tokens in HTTP-only cookies with login attempt limiting (5 attempts = 2-hour lockout). Attendees can review events post-attendance, and organizers access basic analytics. The responsive UI supports dark mode and works across devices.
+## Solution
 
-## 🚀 Features
+EventHub solves this with centralized event discovery, smart filtering, and a real-time RSVP system that enforces capacity limits automatically — all wrapped in a clean, responsive interface.
 
-Core platform features include:
+---
 
-- 🔐 **User Authentication**: Secure registration, login, and password reset via email with JWT tokens and 2FA support
-- 📅 **Event Management**: Create, edit, and delete events with image uploads and comprehensive details
-- 🌐 **Online & Offline Events**: Support for online events (Zoom, Google Meet, Teams, Webex) and location-based offline events
-- 🔍 **Smart Discovery**: Real-time search and category filtering (tech, music, sports, food, other)
-- 📝 **RSVP System**: Real-time capacity enforcement with automatic availability checks
-- ⭐ **Reviews & Ratings**: Attendees can review and rate events post-attendance
-- 🤖 **Personalized Recommendations**: Intelligent recommendations based on user interests and preferences
-- 🔥 **Trending Events**: Discover what's popular and trending in your community
-- 📊 **Organizer Dashboard**: Analytics and attendee management for event creators
-- 👥 **Social Features**: Follow/unfollow users for networking and community building
-- 🌙 **Dark Mode**: Premium UI/UX with responsive design and dark/light mode support
-- 🔔 **Notifications**: Toast notifications for user feedback and real-time updates
+## Key Features
 
-## 🛠️ Tech Stack
+- 🔐 **Authentication** — JWT + HTTP-only cookies, rate-limited login
+- 📅 **Event Management** — Create, edit, delete events with image uploads (ImageKit CDN)
+- ✅ **RSVP System** — Real-time capacity enforcement; join or leave events instantly
+- 🔍 **Smart Discovery** — Search, category & date filtering, pagination
+- 👤 **User Profiles** — Favorites, follow/unfollow, hosted events
+- 📧 **Email Service** — Password recovery via Nodemailer
+- 🛡️ **Security** — bcryptjs hashing, input sanitization, rate limiting, CORS, Helmet.js
+- 📱 **Responsive UI** — Dark mode, mobile-optimized layout
 
-- **Frontend:** React 19, Vite 7, Tailwind CSS 4, React Router 7, Axios, Lucide & React Icons
-- **Backend:** Node.js, Express 5, MongoDB 9, Mongoose 9
-- **Auth:** JWT, bcryptjs (10 salt rounds), speakeasy (TOTP/2FA), qrcode
-- **Security:** Helmet.js, express-rate-limit, express-mongo-sanitize, csurf, cookie-parser
-- **Media & Email:** ImageKit (file storage), SendGrid (email notifications)
-- **Utilities:** Winston (logging), Redis (caching support), uuid, multer
+---
 
-## Installation / Setup
+## Tech Stack
 
-1. Clone the repository:
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, Vite 7, Tailwind CSS 4, React Router 7 |
+| **Backend** | Node.js 18+, Express 5, Mongoose 9 |
+| **Database** | MongoDB Atlas |
+| **Auth & Security** | JWT, bcryptjs, Helmet.js, express-rate-limit |
+| **Storage** | ImageKit (CDN image hosting) |
+| **Email** | Nodemailer (SMTP) |
+| **State Management** | Context API |
+| **Deployment** | Vercel (frontend), Railway/Render (backend) |
 
-```bash
-git clone https://github.com/Samiksha-Lone/event-platform.git
-cd event-platform
+---
+
+## Architecture / Flow
+
+```
+User → React Frontend → Context API → Axios → Express API → MongoDB
+                                                    ↓
+                                         JWT Auth · Rate Limiting
+                                         Input Validation · ImageKit
 ```
 
-2. Install server dependencies:
+---
+
+## My Contribution
+
+**I independently designed and built this entire project from scratch**, including:
+
+- 🖥️ **Frontend** — All React components, routing, state management, and responsive UI
+- ⚙️ **Backend** — Express server, RESTful APIs, MongoDB schemas, and business logic
+- 🔐 **Authentication** — JWT-based auth flow with secure HTTP-only cookies
+- 📸 **Media Handling** — ImageKit integration for image uploads and CDN delivery
+- 📧 **Email Service** — Password reset flow using Nodemailer
+- 🚀 **Deployment** — Environment setup, MongoDB Atlas, and Vercel deployment
+
+No templates, no team — fully self-built.
+
+---
+
+## Setup
+
+### Prerequisites
+Node.js 18+, npm, MongoDB Atlas account, ImageKit account
+
+### 1. Backend
 
 ```bash
 cd server
 npm install
 ```
 
-3. Create and configure server environment variables:
+Create a `.env` file:
 
 ```env
 PORT=3000
-NODE_ENV=development
-MONGO_URI=your-mongodb-connection-string
-JWT_SECRET=your-secret-key
+MONGO_URI=mongodb+srv://<your-cluster>
+JWT_SECRET=your_secret_key
 CLIENT_URL=http://localhost:5173
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+IMAGEKIT_PUBLIC_KEY=...
+IMAGEKIT_PRIVATE_KEY=...
+IMAGEKIT_URL_ENDPOINT=...
 ```
 
-4. Start the backend:
-
 ```bash
-npm run dev
+npm run dev   # http://localhost:3000
 ```
 
-5. Install frontend dependencies in a second terminal:
+### 2. Frontend
 
 ```bash
-cd ../client
+cd client
 npm install
-npm run dev
+npm run dev   # http://localhost:5173
 ```
 
-6. Open the app at:
+---
 
-```bash
-http://localhost:5173
-```
-
-## 📸 Screenshots
+## Screenshots
 
 ### Dashboard
-![Dashboard screenshot](outputs/dashboard.webp)
+![Dashboard](outputs/dashboard.webp)
 
 ### Create Event
-![Create event screenshot](outputs/create-event.webp)
+![Create Event](outputs/create-event.webp)
+
+---
+
+## Future Improvements
+
+- [ ] Real-time notifications using WebSockets
+- [ ] AI-assisted event description and poster generation
+- [ ] Event reviews and ratings system
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+ISC License — see [LICENSE](LICENSE) for details.
 
-## Credit
+---
 
-If you use or build upon this project, please provide attribution:
-Samiksha Lone
-https://github.com/Samiksha-Lone
+## Credits
+
+**Developed by [Samiksha Lone](https://github.com/Samiksha-Lone)**

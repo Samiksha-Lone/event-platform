@@ -141,11 +141,10 @@ async function getEvents(req, res) {
     try {
       const cachedData = await cacheService.get(cacheKey);
       if (cachedData) {
-        console.log('✅ Returning cached events');
         return res.status(200).json(cachedData);
       }
     } catch (cacheErr) {
-      console.warn('Cache error (ignoring):', cacheErr);
+      // Cache error - continuing without cache
     }
 
     // If not in cache, fetch from database
@@ -161,20 +160,8 @@ async function getEvents(req, res) {
       eventModel.countDocuments(filter)
     ]);
 
-    // Filter out events with null owners (if any) and log them
+    // Filter out events with null owners
     const eventsWithOwners = events.filter(e => e.owner !== null);
-    const eventsWithoutOwners = events.filter(e => e.owner === null);
-    
-    if (eventsWithoutOwners.length > 0) {
-      console.warn('[Backend] WARNING: Events without owners:', {
-        count: eventsWithoutOwners.length,
-        eventIds: eventsWithoutOwners.map(e => ({
-          _id: e._id,
-          title: e.title,
-          ownerField: e.owner
-        }))
-      });
-    }
 
     const totalPages = Math.ceil(totalEvents / limit);
     const hasMore = page < totalPages;
@@ -195,7 +182,7 @@ async function getEvents(req, res) {
     try {
       await cacheService.set(cacheKey, responseData, 300);
     } catch (cacheErr) {
-      console.warn('Cache set error (ignoring):', cacheErr);
+      // Cache set failed, continuing without caching
     }
 
     res.status(200).json(responseData);

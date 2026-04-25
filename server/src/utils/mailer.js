@@ -22,11 +22,8 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
 async function sendResetEmail(to, resetLink) {
   
   if (!emailConfigValid || process.env.NODE_ENV === 'development') {
-    console.log('\n🔐 PASSWORD RESET LINK (Development Mode):');
-    console.log(`To: ${to}`);
-    console.log(`Link: ${resetLink}`);
-    console.log('This link expires in 15 minutes\n');
-    console.log('💡 Tip: Copy the link above and paste it in your browser to test password reset.\n');
+    // Development mode: Password reset link logged via logger middleware
+    // In production, reset link is sent via email
 
     return { 
       accepted: [to], 

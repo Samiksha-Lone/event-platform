@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
+    // Note: 2FA fields are planned for future implementation
     twoFactorSecret: {
         type: String,
         default: undefined
