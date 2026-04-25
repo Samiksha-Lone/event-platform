@@ -102,8 +102,8 @@ npm run dev   # http://localhost:5173
 
 ## Screenshots
 
-### Dashboard
-![Dashboard](outputs/dashboard.webp)
+### Home Page
+![Home Page](outputs/home.webp)
 
 ### Create Event
 ![Create Event](outputs/create-event.webp)
