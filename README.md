@@ -108,6 +108,9 @@ npm run dev   # http://localhost:5173
 ### Create Event
 ![Create Event](outputs/create-event.webp)
 
+### User Dashboard
+![User Dashboard](outputs/user-dashboard.webp)
+
 ## Future Improvements
 
 - [ ] Real-time notifications using WebSockets
