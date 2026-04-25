@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import Navbar from '../components/Navbar';
-import AiDescriptionModal from '../components/AiDescriptionModal';
-import AiPosterModal from '../components/AiPosterModal';
-import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon, Sparkles, Palette } from 'lucide-react';
+import { Calendar, MapPin, Users, BookOpen, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useEvents } from '../hooks/useEvents';
 import { useToast } from '../context/ToastContext';
@@ -19,9 +17,6 @@ export default function EditEvent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [imageMode, setImageMode] = useState('keep');
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [isPosterModalOpen, setIsPosterModalOpen] = useState(false);
-  const [isDetectingCategory, setIsDetectingCategory] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -81,52 +76,6 @@ export default function EditEvent() {
     setImageMode('file');
   };
 
-  const detectCategory = () => {
-    setIsDetectingCategory(true);
-    setTimeout(() => {
-      const text = (form.title + " " + form.description).toLowerCase();
-      let suggested = "other";
-      if (text.match(/code|tech|software|dev|ai|data|web|app|react|python|js/)) suggested = "tech";
-      else if (text.match(/music|concert|band|dj|song|dance/)) suggested = "music";
-      else if (text.match(/sports|football|soccer|gym|fitness|match/)) suggested = "sports";
-      else if (text.match(/food|eat|cook|chef|dinner|restaurant/)) suggested = "food";
-      else if (text.match(/health|gym|yoga|fitness|medical|doctor|wellness|mental/)) suggested = "health";
-      else if (text.match(/learn|school|college|workshop|study|class|course|training/)) suggested = "education";
-      else if (text.match(/workshop|hands-on|build|create|seminar/)) suggested = "workshop";
-      else if (text.match(/party|meet|social|hangout|gathering|friends/)) suggested = "social";
-      
-      setForm(prev => ({ ...prev, category: suggested }));
-      setIsDetectingCategory(false);
-      addToast(`Suggested category: ${suggested.toUpperCase()}`, "info");
-    }, 1200);
-  };
-
-  const calculateViralScore = () => {
-    let score = 0;
-    if (form.title.length > 15) score += 20;
-    if (form.description.length > 150) score += 30;
-    if (form.imageUrl || form.imageFile || form.existingImage) score += 30;
-    if (form.capacity > 50) score += 10;
-    if (form.location.length > 10) score += 10;
-    return score;
-  };
-
-  const viralScore = calculateViralScore();
-
-  const getTimeSuggestion = () => {
-    const suggestions = {
-      tech: "Mid-morning (10:00 AM) is best for focus.",
-      music: "Evening (7:00 PM) creates the best vibe.",
-      sports: "Weekend mornings (9:00 AM) are peak energy.",
-      food: "Lunchtime (12:30 PM) or Dinner (7:30 PM) is ideal.",
-      health: "Morning (8:00 AM) is best for health activities.",
-      education: "Morning (9:00 AM) is ideal for learning.",
-      workshop: "Morning (10:00 AM) provides great focus for workshops.",
-      social: "Evening (6:00 PM) is the best time for social events.",
-      other: "Afternoons (2:00 PM) usually work for most."
-    };
-    return suggestions[form.category] || suggestions.other;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -184,45 +133,10 @@ export default function EditEvent() {
         res = await api.put(`/event/${id}`, formdata);
       }
       else if (imageMode === 'url' && form.imageUrl) {
-        // If imageUrl is a data URL (base64 from AI poster), send as multipart FormData
-        if (typeof form.imageUrl === 'string' && form.imageUrl.startsWith('data:')) {
-          const dataURLtoFile = (dataurl, filename) => {
-            const arr = dataurl.split(',');
-            const mimeMatch = arr[0].match(/:(.*?);/);
-            const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) {
-              u8arr[n] = bstr.charCodeAt(n);
-            }
-            try {
-              return new File([u8arr], filename, { type: mime });
-            // eslint-disable-next-line no-unused-vars
-            } catch (err) {
-              // Fallback for older browsers
-              const blob = new Blob([u8arr], { type: mime });
-              blob.name = filename;
-              return blob;
-            }
-          };
-
-          const posterFile = dataURLtoFile(form.imageUrl, `poster-${Date.now()}.jpg`);
-          const formdata = new FormData();
-          Object.keys(eventData).forEach(key => {
-            if (eventData[key] !== undefined) {
-              formdata.append(key, eventData[key]);
-            }
-          });
-          formdata.append('image', posterFile);
-
-          res = await api.put(`/event/${id}`, formdata);
-        } else {
-          res = await api.put(
-            `/event/${id}`,
-            { ...eventData, imageUrl: form.imageUrl }
-          );
-        }
+        res = await api.put(
+          `/event/${id}`,
+          { ...eventData, imageUrl: form.imageUrl }
+        );
       }
       else {
         res = await api.put(
@@ -320,19 +234,9 @@ export default function EditEvent() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm font-bold text-neutral-700 dark:text-gray-300">
-                      Description <span className="text-red-500">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setIsAiModalOpen(true)}
-                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-indigo-600 transition-all border border-indigo-200 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
-                    >
-                      <Sparkles size={12} />
-                      ✨ Generate with AI
-                    </button>
-                  </div>
+                  <label className="text-sm font-bold text-neutral-700 dark:text-gray-300">
+                    Description <span className="text-red-500">*</span>
+                  </label>
                   <textarea
                     name="description"
                     value={form.description}
@@ -344,24 +248,9 @@ export default function EditEvent() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm font-bold text-neutral-700 dark:text-gray-300">
+                   <label className="block mb-1.5 text-sm font-bold text-neutral-700 dark:text-gray-300">
                       Category
                     </label>
-                    <button
-                      type="button"
-                      onClick={detectCategory}
-                      disabled={isDetectingCategory}
-                      className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 transition-all border border-indigo-200 rounded-full bg-white hover:bg-indigo-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-indigo-400"
-                    >
-                      {isDetectingCategory ? (
-                        <div className="w-2.5 h-2.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Sparkles size={10} />
-                      )}
-                      AI Suggest
-                    </button>
-                  </div>
                     <select
                       name="category"
                       value={form.category}
@@ -599,17 +488,6 @@ export default function EditEvent() {
                       <LinkIcon size={16} />
                       Use URL
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageMode('url');
-                        setIsPosterModalOpen(true);
-                      }}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-indigo-600 border border-indigo-200 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
-                    >
-                      <Palette size={16} />
-                      ✨ AI Poster
-                    </button>
                   </div>
 
                   {imageMode === 'file' && (
@@ -679,23 +557,7 @@ export default function EditEvent() {
         </div>
       </div>
 
-      <AiDescriptionModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        onApply={(text) => {
-          setForm(prev => ({ ...prev, description: text }));
-        }}
-      />
-      <AiPosterModal
-        isOpen={isPosterModalOpen}
-        onClose={() => setIsPosterModalOpen(false)}
-        onApply={(url) => {
-          setForm(prev => ({ ...prev, imageUrl: url }));
-          setImageMode('url');
-        }}
-        title={form.title}
-        description={form.description}
-      />
+
     </div>
   );
 }

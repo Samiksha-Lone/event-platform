@@ -4,13 +4,9 @@
 
 **[🚀 Live Demo](https://eventhub-eight.vercel.app/)** &nbsp;|&nbsp; **[📂 GitHub Repository](https://github.com/Samiksha-Lone/event-platform)**
 
----
-
 ## Overview
 
 EventHub is a centralized platform where users can create and discover both online and offline events, RSVP with real-time capacity management, and engage with a community through profiles and favorites.
-
----
 
 ## Problem Statement
 
@@ -18,13 +14,9 @@ EventHub is a centralized platform where users can create and discover both onli
 - Attendees struggle to discover events that match their interests and availability
 - Manual RSVP tracking is unreliable and prone to over-booking
 
----
-
 ## Solution
 
 EventHub solves this with centralized event discovery, smart filtering, and a real-time RSVP system that enforces capacity limits automatically — all wrapped in a clean, responsive interface.
-
----
 
 ## Key Features
 
@@ -37,8 +29,6 @@ EventHub solves this with centralized event discovery, smart filtering, and a re
 - 🛡️ **Security** — bcryptjs hashing, input sanitization, rate limiting, CORS, Helmet.js
 - 📱 **Responsive UI** — Dark mode, mobile-optimized layout
 
----
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -50,9 +40,7 @@ EventHub solves this with centralized event discovery, smart filtering, and a re
 | **Storage** | ImageKit (CDN image hosting) |
 | **Email** | Nodemailer (SMTP) |
 | **State Management** | Context API |
-| **Deployment** | Vercel (frontend), Railway/Render (backend) |
-
----
+| **Deployment** | Vercel (frontend), Railway/Render (backend) |-
 
 ## Architecture / Flow
 
@@ -62,8 +50,6 @@ User → React Frontend → Context API → Axios → Express API → MongoDB
                                          JWT Auth · Rate Limiting
                                          Input Validation · ImageKit
 ```
-
----
 
 ## My Contribution
 
@@ -75,10 +61,6 @@ User → React Frontend → Context API → Axios → Express API → MongoDB
 - 📸 **Media Handling** — ImageKit integration for image uploads and CDN delivery
 - 📧 **Email Service** — Password reset flow using Nodemailer
 - 🚀 **Deployment** — Environment setup, MongoDB Atlas, and Vercel deployment
-
-No templates, no team — fully self-built.
-
----
 
 ## Setup
 
@@ -118,8 +100,6 @@ npm install
 npm run dev   # http://localhost:5173
 ```
 
----
-
 ## Screenshots
 
 ### Dashboard
@@ -128,21 +108,14 @@ npm run dev   # http://localhost:5173
 ### Create Event
 ![Create Event](outputs/create-event.webp)
 
----
-
 ## Future Improvements
 
 - [ ] Real-time notifications using WebSockets
-- [ ] AI-assisted event description and poster generation
 - [ ] Event reviews and ratings system
-
----
 
 ## License
 
 ISC License — see [LICENSE](LICENSE) for details.
-
----
 
 ## Credits
 
